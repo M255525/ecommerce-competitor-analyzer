@@ -36,4 +36,4 @@
 - 測完清掉 `ecaStudio.` 開頭的 localStorage（避免假金鑰殘留）。
 
 ## 部署
-尚未上線（2026-10-31 建立，待使用者確認後再建公開 repo＋GitHub Pages；`.github/workflows/deploy-pages.yml` 已備妥，分支 master）。訪客計數器 page_id：`m255525.ecommercecompetitoranalyzer`。
+2026-11-01 已上線：公開 repo `M255525/ecommerce-competitor-analyzer`（建 repo 被 auto mode 擋，由使用者自己跑 `gh repo create --push`），GitHub Pages https://m255525.github.io/ecommerce-competitor-analyzer/ （Actions workflow `deploy-pages.yml`，分支 master，push 即自動部署；先 push 再開 Pages，master 分支政策正常）。訪客計數器 page_id：`m255525.ecommercecompetitoranalyzer`。已加入程式牆與 github-dashboard 的 `REPO_META`。
