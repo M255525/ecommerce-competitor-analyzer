@@ -106,7 +106,9 @@ label.inline{display:inline-flex;gap:6px;align-items:center;margin-right:16px;fo
 
 #result{display:none;}
 #result.show{display:block;}
-.tabs{display:flex;gap:4px;flex-wrap:wrap;border-bottom:2px solid var(--border);margin-bottom:16px;}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;border-bottom:2px solid var(--border);margin-bottom:16px;position:sticky;top:0;z-index:20;background:var(--panel);}
+body.has-marquee .tabs{top:30px;}
+.swipe-hint{display:none;font-size:.78rem;color:var(--sub);text-align:center;margin:2px 0 6px;}
 .tab{border:none;background:none;padding:8px 14px;cursor:pointer;font-weight:600;color:var(--sub);border-bottom:3px solid transparent;margin-bottom:-2px;}
 .tab.on{color:var(--coral);border-bottom-color:var(--coral);}
 .pane{display:none;} .pane.on{display:block;}
@@ -134,6 +136,12 @@ table.mx td.y{color:var(--green);font-weight:700;}
 table.mx td.n{color:#c0c8d2;}
 table.mx tr.dim td{background:#eef2f6;font-weight:700;color:var(--ink2);font-size:.8rem;}
 table.mx th.me,table.mx td.me{background:#fff5f1;}
+table.mx td:first-child,table.mx th:first-child{position:sticky;left:0;z-index:1;background:#fff;box-shadow:1px 0 0 var(--border);}
+table.mx thead th:first-child{background:var(--panel2);}
+table.mx tr.dim td:first-child{position:static;box-shadow:none;background:#eef2f6;}
+table.mx tr.dim td span{position:sticky;left:8px;}
+table.mx td:first-child,table.mx th:first-child{min-width:104px;white-space:nowrap;}
+table.mx td.c,table.mx th.c{min-width:72px;}
 
 .chips3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px;}
 .box{border:1px solid var(--border);border-radius:12px;padding:10px 12px;background:var(--panel2);}
@@ -175,6 +183,11 @@ table.mx th.me,table.mx td.me{background:#fff5f1;}
 .copyline span{flex:1;}
 .copyline button{border:1px solid var(--border);background:#fff;border-radius:6px;cursor:pointer;font-size:.75rem;padding:1px 8px;white-space:nowrap;}
 
+.warnbar{max-width:1180px;margin:12px auto 0;padding:0 16px;}
+.warnbar > div{border:2px dashed var(--gold);border-radius:10px;padding:7px 12px;font-size:.84rem;color:var(--sub);background:#fffaf0;}
+.warnbar b{color:#a86a10;}
+.linkbtn{border:none;background:none;color:var(--ink2);text-decoration:underline;cursor:pointer;padding:0 2px;font-size:inherit;}
+.kitline{display:flex;flex-wrap:wrap;gap:6px 14px;justify-content:center;align-items:center;margin-top:10px;font-size:.85rem;color:var(--sub);}
 footer{max-width:1180px;margin:0 auto;padding:0 16px 40px;text-align:center;}
 .warn-box{background:var(--panel);border:1px solid var(--border);border-left:4px solid var(--gold);border-radius:12px;padding:14px 18px;text-align:left;color:var(--sub);font-size:.82rem;}
 .warn-box strong{display:block;color:var(--ink);margin-bottom:6px;font-size:.9rem;}
@@ -197,13 +210,48 @@ footer{max-width:1180px;margin:0 auto;padding:0 16px 40px;text-align:center;}
 #printReport,#pdfWatermark{display:none;}
 
 @media (max-width:900px){
+  header{padding:18px 16px;}
+  .hwrap{align-items:flex-start;}
   .form-grid{grid-template-columns:repeat(2,1fr);}
+  .kpis{grid-template-columns:repeat(3,1fr);}
   .comp-list,.pc-grid,.st-grid{grid-template-columns:1fr;}
   .chips3{grid-template-columns:1fr;}
   .plan{grid-template-columns:repeat(2,1fr);}
 }
 @media (max-width:560px){
   header h1{font-size:1.35rem;}
+  header p{font-size:.85rem;}
+  .hbtns{display:grid;grid-template-columns:repeat(3,1fr);width:100%;gap:6px;}
+  .hbtn{text-align:center;padding:7px 4px;font-size:.8rem;}
+  input[type=text],input[type=number],input[type=password],select,textarea{font-size:16px;}
+  .wrap{padding:12px 10px 24px;}
+  .me-box{padding:12px 10px;}
+  .comp{padding:10px;}
+  .actions .btn:not(.small){flex:1 1 100%;}
+  .actions .btn.small{flex:1 1 auto;}
+  .kpis{grid-template-columns:repeat(2,1fr);gap:8px;}
+  .kpi .v{font-size:1.15rem;}
+  .tabs{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin-left:-14px;margin-right:-14px;padding:0 10px;}
+  .tabs::-webkit-scrollbar{display:none;}
+  .tab{white-space:nowrap;flex:0 0 auto;}
+  .pane-head .btn{margin-left:0;width:100%;}
+  .swipe-hint{display:block;}
+  .price-range{font-size:1.1rem;}
+  table.cards thead{display:none;}
+  table.cards,table.cards tbody,table.cards tr,table.cards td{display:block;width:100%;}
+  table.cards tr{border:1px solid var(--border);border-radius:10px;margin-bottom:8px;padding:6px 10px;background:#fff;}
+  table.cards tr.me{border:2px solid var(--coral);}
+  table.cards td{border:none;padding:3px 0;display:flex;justify-content:space-between;gap:10px;text-align:right !important;}
+  table.cards td::before{content:attr(data-label);color:var(--sub);font-weight:600;text-align:left;flex:0 0 auto;}
+  table.cards td:first-child{font-weight:700;color:var(--ink);text-align:left !important;}
+  table.cards td:first-child::before{content:none;}
+  .modal{padding:8px;align-items:flex-end;}
+  .modal .card{max-height:92vh;border-radius:16px 16px 10px 10px;padding:16px;}
+  .modal .foot .btn:last-child{margin-left:0;width:100%;}
+  .copyline{flex-direction:column;}
+  .copyline button{align-self:flex-end;}
+  footer{padding:0 10px 30px;}
+  .warnbar{padding:0 10px;}
   .panel{padding:14px 14px;}
   .form-grid{grid-template-columns:1fr;}
   .field.w2{grid-column:auto;}
@@ -213,7 +261,11 @@ footer{max-width:1180px;margin:0 auto;padding:0 16px 40px;text-align:center;}
   .set-row{grid-template-columns:1fr;}
   .fee-grid{grid-template-columns:1fr 1fr;}
   .plan{grid-template-columns:1fr;}
-  .tab{padding:6px 9px;font-size:.88rem;}
+  .tab{padding:6px 10px;font-size:.88rem;}
+}
+@media (max-width:360px){
+  .hbtns{grid-template-columns:repeat(2,1fr);}
+  .comp .g{grid-template-columns:1fr;}
 }
 
 @media print{
@@ -249,12 +301,16 @@ footer{max-width:1180px;margin:0 auto;padding:0 16px 40px;text-align:center;}
     </div>
     <div class="hbtns">
       <a class="hbtn" href="manual.html" target="_blank" rel="noopener">📖 操作手冊</a>
+      <button class="hbtn" type="button" data-open-about>⚠ 使用警語</button>
+      <button class="hbtn" type="button" data-open-about="creator">👤 創作者</button>
       <button class="hbtn" id="historyBtn" type="button">🗂 歷史紀錄</button>
       <button class="hbtn" id="settingsBtn" type="button" aria-expanded="false" aria-controls="settings">⚙ 常用設定</button>
       <button class="hbtn" type="button" data-install>📲 加入主畫面</button>
     </div>
   </div>
 </header>
+
+<div class="warnbar"><div><b>⚠ 使用警語：</b>分析結果僅供教學與參考，不構成經營建議；「AI 補齊」的競品數值是推測值，請以競品實際頁面為準；本工具不抓取任何電商網站，資料只存在你的瀏覽器。<button class="linkbtn" type="button" data-open-about>完整警語</button></div></div>
 
 <main class="wrap">
 
@@ -272,7 +328,7 @@ footer{max-width:1180px;margin:0 auto;padding:0 16px 40px;text-align:center;}
     <div class="set-grid">
       <div class="set-row"><span>預設銷售平台</span><select id="setPlatform"></select></div>
       <div class="set-row"><span>平台費率估算（%）<br><small class="key-note">含成交手續費、金流費，依你的實際合約調整</small></span><div class="fee-grid" id="feeGrid"></div></div>
-      <div class="set-row"><span>金額單位</span><input type="text" id="setUnit" maxlength="6" style="max-width:120px" placeholder="元"></div>
+      <div class="set-row"><span>預設幣別<br><small class="key-note">新表單帶入；每次分析可在表單另選</small></span><select id="setCurrency" style="max-width:260px"></select></div>
     </div>
     <h3>顯示</h3>
     <div class="set-grid">
@@ -312,16 +368,17 @@ footer{max-width:1180px;margin:0 auto;padding:0 16px 40px;text-align:center;}
     <div class="samples"><span class="muted">範例（品牌皆為虛構）：</span><span id="sampleChips"></span></div>
 
     <div class="me-box">
-      <span class="tag">我的商品</span>
+      <span class="tag">我的商品</span> <span class="muted" id="curHint"></span>
       <div class="form-grid">
         <div class="field w2"><label for="mName">商品名稱 <em>*</em></label><input type="text" id="mName" placeholder="例如：暖日 316 輕量保溫瓶 600ml"></div>
         <div class="field"><label for="mCategory">商品類別</label><input type="text" id="mCategory" placeholder="例如：保溫瓶"></div>
         <div class="field"><label for="mPlatform">主要銷售平台</label><select id="mPlatform"></select></div>
-        <div class="field"><label for="mPrice">售價 <em>*</em></label><input type="number" id="mPrice" min="0" step="1"></div>
-        <div class="field"><label for="mCost">成本（含進貨／包材）</label><input type="number" id="mCost" min="0" step="1"></div>
+        <div class="field"><label for="mCurrency">幣別</label><select id="mCurrency"></select></div>
+        <div class="field"><label for="mPrice">售價 <em>*</em> <span class="curtag"></span></label><input type="number" id="mPrice" min="0" step="any"></div>
+        <div class="field"><label for="mCost">成本（含進貨／包材）<span class="curtag"></span></label><input type="number" id="mCost" min="0" step="any"></div>
         <div class="field"><label for="mRating">目前評分（選填）</label><input type="number" id="mRating" min="0" max="5" step="0.1" placeholder="新品可留空"></div>
         <div class="field"><label for="mReviews">評論數（選填）</label><input type="number" id="mReviews" min="0" step="1"></div>
-        <div class="field w2"><label for="mTarget">目標客群</label><input type="text" id="mTarget" placeholder="例如：通勤上班族"></div>
+        <div class="field"><label for="mTarget">目標客群</label><input type="text" id="mTarget" placeholder="例如：通勤上班族"></div>
         <div class="field w2"><label for="mPain">顧客痛點</label><input type="text" id="mPain" placeholder="例如：保溫瓶太重、難清洗"></div>
         <div class="field w4"><label for="mFeatures">商品特色（用逗號或換行分隔）</label><textarea id="mFeatures" placeholder="例如：316不鏽鋼, 輕量 260g, 保溫12小時, 防漏, 可拆好清洗, 一年保固"></textarea></div>
       </div>
@@ -370,8 +427,14 @@ footer{max-width:1180px;margin:0 auto;padding:0 16px 40px;text-align:center;}
       <li>僅供教學、課程及個人使用，禁止未經授權公開發布、販售或商業化使用。</li>
     </ul>
   </div>
-  <div class="creator-box">製作：<strong>Mark Tsai（蔡豐全）</strong>｜<a href="mailto:tsaimark@gmail.com">tsaimark@gmail.com</a>｜<a href="#" data-open-about="creator">創作者資訊</a>｜<a href="manual.html#creator" target="_blank" rel="noopener">完整經歷</a></div>
-  <div style="margin-top:8px"><img src="https://visitor-badge.laobi.icu/badge?page_id=m255525.ecommercecompetitoranalyzer" alt="訪客計數" loading="lazy"></div>
+  <div class="kitline">
+    <img src="https://visitor-badge.laobi.icu/badge?page_id=m255525.ecommercecompetitoranalyzer" alt="訪客次數" height="20" loading="lazy">
+    <span>創作者 <a href="manual.html#creator" target="_blank" rel="noopener">Mark Tsai（蔡豐全）</a>｜<a href="mailto:tsaimark@gmail.com">tsaimark@gmail.com</a></span>
+    <button class="linkbtn" type="button" data-open-about="creator">👤 創作者資訊</button>
+    <button class="linkbtn" type="button" data-open-about>⚠ 使用警語</button>
+    <a href="manual.html" target="_blank" rel="noopener">📖 操作手冊</a>
+    <button class="linkbtn" type="button" data-install>📲 加入主畫面</button>
+  </div>
 </footer>
 
 <div class="modal" id="about" role="dialog" aria-modal="true" aria-labelledby="aboutTitle">
@@ -416,7 +479,14 @@ function toast(msg){ var t=$('toast'); t.textContent=msg; t.classList.add('show'
 var PREFIX = 'ecaStudio.';
 var SET_KEY = PREFIX + 'settings', HIST_KEY = PREFIX + 'history', DRAFT_KEY = PREFIX + 'draft', WARN_KEY = PREFIX + 'warned';
 function defaultFees(){ var o = {}; Object.keys(E.PLATFORMS).forEach(function(k){ o[k] = E.PLATFORMS[k].fee; }); return o; }
-var DEFAULTS = { provider:'claude', model:'', apiKey:'', fs:'', platform:'shopee', fees:defaultFees(), unit:'元', author:'', watermark:true, autoSave:true, marquee:true };
+var CURRENCIES = {
+  TWD:{label:'新台幣 TWD', sym:'NT$', dec:0}, USD:{label:'美元 USD', sym:'US$', dec:2}, JPY:{label:'日圓 JPY', sym:'¥', dec:0},
+  CNY:{label:'人民幣 CNY', sym:'CN¥', dec:2}, HKD:{label:'港幣 HKD', sym:'HK$', dec:2}, EUR:{label:'歐元 EUR', sym:'€', dec:2},
+  GBP:{label:'英鎊 GBP', sym:'£', dec:2}, KRW:{label:'韓元 KRW', sym:'₩', dec:0}, SGD:{label:'新加坡幣 SGD', sym:'S$', dec:2},
+  MYR:{label:'馬幣 MYR', sym:'RM', dec:2}, THB:{label:'泰銖 THB', sym:'฿', dec:0}, AUD:{label:'澳幣 AUD', sym:'A$', dec:2},
+  CAD:{label:'加幣 CAD', sym:'C$', dec:2}
+};
+var DEFAULTS = { provider:'claude', model:'', apiKey:'', fs:'', platform:'shopee', fees:defaultFees(), currency:'TWD', author:'', watermark:true, autoSave:true, marquee:true };
 function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
 function lsSet(k, v){ try{ localStorage.setItem(k, v); }catch(e){} }
 function lsDel(k){ try{ localStorage.removeItem(k); }catch(e){} }
@@ -425,11 +495,23 @@ var settings = (function(){
   var o = JSON.parse(JSON.stringify(DEFAULTS));
   Object.keys(s).forEach(function(k){ o[k] = s[k]; });
   o.fees = Object.assign(defaultFees(), s.fees || {});
+  if(!CURRENCIES[o.currency]) o.currency = 'TWD';
+  delete o.unit;
   return o;
 })();
 function saveSettings(){ lsSet(SET_KEY, JSON.stringify(settings)); }
-function unit(){ return settings.unit || '元'; }
-function money(n){ if(n == null || !isFinite(n)) return '—'; return Math.round(n).toLocaleString('zh-TW') + ' ' + unit(); }
+var activeCur = settings.currency;
+function cur(){ return CURRENCIES[activeCur] || CURRENCIES.TWD; }
+function unit(){ return activeCur + '（' + cur().sym + '）'; }
+function money(n){
+  if(n == null || !isFinite(n)) return '—';
+  var c = cur(), d = c.dec && Math.abs(n) < 1000 ? c.dec : 0;
+  return c.sym + ' ' + Number(n).toLocaleString('zh-TW', {minimumFractionDigits: d, maximumFractionDigits: d});
+}
+function setActiveCur(code){
+  activeCur = CURRENCIES[code] ? code : 'TWD';
+  document.querySelectorAll('.curtag').forEach(function(el){ el.textContent = '（' + cur().sym + '）'; });
+}
 function pct(n, sign){ if(n == null || !isFinite(n)) return '—'; var v = Math.round(n * 1000) / 10; return (sign && v > 0 ? '+' : '') + v + '%'; }
 
 /* ================= AI 服務商 ================= */
@@ -550,7 +632,7 @@ function extractJsonObject(text){
 }
 
 /* ================= 輸入 ================= */
-var ME_IDS = {name:'mName', category:'mCategory', platform:'mPlatform', price:'mPrice', cost:'mCost', rating:'mRating', reviews:'mReviews', target:'mTarget', pain:'mPain', features:'mFeatures'};
+var ME_IDS = {name:'mName', category:'mCategory', platform:'mPlatform', currency:'mCurrency', price:'mPrice', cost:'mCost', rating:'mRating', reviews:'mReviews', target:'mTarget', pain:'mPain', features:'mFeatures'};
 var MAX_COMPS = 8;
 var comps = [];
 function blankComp(){ return {name:'', price:'', rating:'', reviews:'', features:'', reviewsText:'', ai:{}}; }
@@ -564,7 +646,7 @@ function renderComps(){
       + '<button class="del" type="button" data-del="' + i + '" title="刪除這個競品" aria-label="刪除競品 ' + (i + 1) + '">✕</button></div>'
       + '<div class="g">'
       + '<div class="field"><label>品牌／商品名 <em>*</em></label><input type="text" data-k="name" value="' + esc(c.name) + '" placeholder="例如：山嵐保溫杯 500ml"></div>'
-      + '<div class="field"><label>售價' + b('price') + '</label><input type="number" min="0" data-k="price" value="' + esc(c.price) + '"></div>'
+      + '<div class="field"><label>售價（' + esc(cur().sym) + '）' + b('price') + '</label><input type="number" min="0" step="any" data-k="price" value="' + esc(c.price) + '"></div>'
       + '<div class="field"><label>評分' + b('rating') + '</label><input type="number" min="0" max="5" step="0.1" data-k="rating" value="' + esc(c.rating) + '"></div>'
       + '<div class="field"><label>評論數' + b('reviews') + '</label><input type="number" min="0" data-k="reviews" value="' + esc(c.reviews) + '"></div>'
       + '</div><div class="g2">'
@@ -586,13 +668,21 @@ function writeInput(inp){
   Object.keys(ME_IDS).forEach(function(k){
     var el = $(ME_IDS[k]);
     if(k === 'platform') el.value = me.platform && E.PLATFORMS[me.platform] ? me.platform : settings.platform;
+    else if(k === 'currency') el.value = me.currency && CURRENCIES[me.currency] ? me.currency : (me.name ? 'TWD' : settings.currency);
     else el.value = me[k] != null ? me[k] : '';
   });
   comps = (inp.comps && inp.comps.length ? inp.comps : [blankComp(), blankComp()]).map(function(c){
     return {name:c.name || '', price:c.price == null ? '' : c.price, rating:c.rating == null ? '' : c.rating, reviews:c.reviews == null ? '' : c.reviews,
       features:c.features || '', reviewsText:c.reviewsText || '', ai:c.ai || {}};
   });
-  renderComps();
+  setActiveCur($('mCurrency').value);
+  renderComps(); updateCurHint();
+}
+function updateCurHint(){
+  var pl = $('mPlatform').value, h = '';
+  if(pl === 'amazon' && activeCur === 'TWD') h = '💡 Amazon 通常以當地幣別計價，可把幣別改成 USD、JPY 等';
+  else if((pl === 'shopee' || pl === 'momo' || pl === 'pchome') && activeCur !== 'TWD') h = '💡 台灣電商平台通常以新台幣計價';
+  $('curHint').textContent = h;
 }
 var draftTimer;
 function saveDraft(){ clearTimeout(draftTimer); draftTimer = setTimeout(function(){ lsSet(DRAFT_KEY, JSON.stringify(readInput())); }, 400); }
@@ -650,10 +740,15 @@ function quantile(sorted, q){
   var pos = (sorted.length - 1) * q, lo = Math.floor(pos), hi = Math.ceil(pos);
   return sorted[lo] + (sorted[hi] - sorted[lo]) * (pos - lo);
 }
-function roundPrice(n){ if(n == null) return null; return n >= 100 ? Math.round(n / 10) * 10 : Math.round(n); }
+function roundPrice(n){
+  if(n == null) return null;
+  if(cur().dec){ return n >= 100 ? Math.round(n) : Math.round(n * 2) / 2; }
+  return n >= 10000 ? Math.round(n / 100) * 100 : n >= 100 ? Math.round(n / 10) * 10 : Math.round(n);
+}
 
 function analyze(inp){
   var me = inp.me;
+  setActiveCur(me.currency || 'TWD');
   var catText = [me.category, me.name, me.features].join(' ');
   var catKey = E.classify(catText);
   var noun = me.category || E.CATEGORIES[catKey].noun;
@@ -827,7 +922,7 @@ function analyze(inp){
     (matrix.gaps.length ? '缺少 ' + matrix.gaps.length + ' 項多數競品具備的特色（' + matrix.gaps.slice(0, 3).join('、') + '）。' : '市場基本要求的特色你都具備。') +
     '目前定位為「' + Q.label + '」，建議售價區間 ' + money(priceRange[0]) + '～' + money(priceRange[1]) + '。';
 
-  return {ts: Date.now(), catKey: catKey, catLabel: E.CATEGORIES[catKey].label, noun: noun, platform: platform, platformLabel: E.PLATFORMS[platform].label,
+  return {ts: Date.now(), currency: activeCur, catKey: catKey, catLabel: E.CATEGORIES[catKey].label, noun: noun, platform: platform, platformLabel: E.PLATFORMS[platform].label,
     products: products, price: price, matrix: matrix, dimCount: dimCount, proscons: proscons, compPains: compPains,
     positioning: {quad: quad, medPrice: medPrice, medValue: medValue, statement: statement, opportunity: opportunity, qCount: qCount},
     strategy: strategy, summary: summary, src: {}};
@@ -969,7 +1064,7 @@ function paneHtml(id, r){
   }
   if(id === 'price'){
     var rows = r.products.map(function(p){
-      return '<tr class="' + (p.isMe ? 'me' : '') + '"><td>' + (p.isMe ? '★ ' : '') + esc(p.name) + aiTag(p, 'price') + '</td><td class="num">' + esc(money(p.price)) + '</td><td class="num">' + (p.isMe || p.gap == null ? (p.isMe && p.gap != null ? pct(p.gap, true) : '—') : pct(p.gap, true)) + '</td><td>' + esc(p.band) + '</td><td class="num">' + (p.rating != null ? p.rating + aiTag(p, 'rating') : '—') + '</td><td class="num">' + (p.reviews != null ? p.reviews.toLocaleString() + aiTag(p, 'reviews') : '—') + '</td></tr>';
+      return '<tr class="' + (p.isMe ? 'me' : '') + '"><td>' + (p.isMe ? '★ ' : '') + esc(p.name) + aiTag(p, 'price') + '</td><td class="num" data-label="售價">' + esc(money(p.price)) + '</td><td class="num" data-label="與競品均價差">' + (p.gap == null ? '—' : pct(p.gap, true)) + '</td><td data-label="價格帶">' + esc(p.band) + '</td><td class="num" data-label="評分">' + (p.rating != null ? p.rating + aiTag(p, 'rating') : '—') + '</td><td class="num" data-label="評論數">' + (p.reviews != null ? p.reviews.toLocaleString() + aiTag(p, 'reviews') : '—') + '</td></tr>';
     }).join('');
     var mc = '';
     if(meP.price){
@@ -982,22 +1077,22 @@ function paneHtml(id, r){
         + (P.margin != null && P.margin < .15 ? '<p class="bad">⚠ 毛利率低於 15%，再扣廣告、運費與退貨後可能虧損，不建議再降價。</p>' : '')
         + '<p class="muted">未含運費補貼、廣告費、退貨與倉儲成本。</p></div>';
     }
-    return '<div class="pane-head"><h3>價格梯與價格帶</h3></div><div class="chart-wrap">' + priceLadderSvg(r) + '</div>'
+    return '<div class="pane-head"><h3>價格梯與價格帶</h3></div><div class="swipe-hint">← 左右滑動看完整圖表 →</div><div class="chart-wrap">' + priceLadderSvg(r) + '</div>'
       + '<div class="kpis" style="margin-top:12px">' + kpi('中位數', money(P.median)) + kpi('25%／75% 分位', money(P.p25) + '／' + money(P.p75)) + kpi('我的價格排名', P.meRank ? '第 ' + P.meRank + ' 低／共 ' + P.count : '—') + '</div>'
-      + '<div class="tbl-wrap"><table class="t"><thead><tr><th>商品</th><th class="num">售價</th><th class="num">與競品均價差</th><th>價格帶</th><th class="num">評分</th><th class="num">評論數</th></tr></thead><tbody>' + rows + '</tbody></table></div>' + mc;
+      + '<div class="tbl-wrap"><table class="t cards"><thead><tr><th>商品</th><th class="num">售價</th><th class="num">與競品均價差</th><th>價格帶</th><th class="num">評分</th><th class="num">評論數</th></tr></thead><tbody>' + rows + '</tbody></table></div>' + mc;
   }
   if(id === 'features'){
     var head = '<tr><th>特色</th>' + r.products.map(function(p){ return '<th class="c' + (p.isMe ? ' me' : '') + '">' + esc(shortName(p.name)) + '</th>'; }).join('') + '<th class="c">競品具備率</th></tr>';
     var body = '', lastDim = '';
     M.rows.forEach(function(row){
-      if(row.dim !== lastDim){ body += '<tr class="dim"><td colspan="' + (r.products.length + 2) + '">' + esc(row.dim) + '</td></tr>'; lastDim = row.dim; }
+      if(row.dim !== lastDim){ body += '<tr class="dim"><td colspan="' + (r.products.length + 2) + '"><span>' + esc(row.dim) + '</span></td></tr>'; lastDim = row.dim; }
       body += '<tr><td>' + esc(row.label) + '</td>' + row.has.map(function(h, i){ return '<td class="c ' + (h ? 'y' : 'n') + (i === 0 ? ' me' : '') + '">' + (h ? '✓' : '–') + '</td>'; }).join('') + '<td class="c">' + Math.round(row.compShare * 100) + '%</td></tr>';
     });
     var customRows = r.products.filter(function(p){ return p.custom.length; }).map(function(p){
       return '<div style="margin:4px 0"><b>' + esc(shortName(p.name)) + '：</b>' + p.custom.map(function(c){ return '<span class="pill">' + esc(c) + '</span>'; }).join('') + '</div>';
     }).join('');
     return '<div class="pane-head"><h3>特色矩陣</h3><span class="muted">由特色欄與商品名稱比對 ' + E.FEATURES.length + ' 類常見特色</span></div>'
-      + (M.rows.length ? '<div class="tbl-wrap"><table class="t mx"><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div>' : '<p class="muted">沒有比對到常見特色，請在特色欄多寫一些描述。</p>')
+      + (M.rows.length ? '<div class="swipe-hint">← 左右滑動看所有競品 →</div><div class="tbl-wrap"><table class="t mx"><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div>' : '<p class="muted">沒有比對到常見特色，請在特色欄多寫一些描述。</p>')
       + '<div class="chips3">'
       + '<div class="box"><h4>🧱 市場基本要求 <small class="muted">多數競品都有</small></h4>' + pills(M.common, 'b', '（競品間沒有共同特色）') + '</div>'
       + '<div class="box"><h4>🌟 你的差異點 <small class="muted">只有你有</small></h4>' + pills(M.unique, 'g', '（目前沒有獨有特色，建議找出 1～2 個）') + '</div>'
@@ -1019,7 +1114,7 @@ function paneHtml(id, r){
   if(id === 'position'){
     var qc = r.positioning.qCount;
     return '<div class="pane-head"><h3>產品定位圖</h3><span class="muted">X＝價格，Y＝價值分數（特色豐富度 55%＋評分 30%＋評論數 15%）；虛線為中位數</span></div>'
-      + '<div class="chart-wrap">' + positionSvg(r) + '</div>'
+      + '<div class="swipe-hint">← 左右滑動看完整定位圖 →</div><div class="chart-wrap">' + positionSvg(r) + '</div>'
       + '<div class="qcard" style="border-left-color:' + Q.color + '">目前定位：<b style="color:' + Q.color + '">' + esc(Q.label) + '</b>　<span class="muted">競品分布：精品型 ' + qc.premium + '／CP 值型 ' + qc.value + '／入門型 ' + qc.budget + '／高價低值 ' + qc.overpriced + '</span></div>'
       + '<div class="pane-head" style="margin-top:12px"><h3>定位陳述 ' + srcBadge('statement') + '</h3>' + regenBtn('position') + '</div>'
       + '<div class="statement">' + esc(r.positioning.statement) + '</div>'
@@ -1053,7 +1148,7 @@ function needKey(){
 function setStatus(msg){ $('aiStatus').innerHTML = msg || ''; }
 function compactData(r){
   return {
-    category: r.noun, platform: r.platformLabel, unit: unit(),
+    category: r.noun, platform: r.platformLabel, currency: unit(),
     myProduct: {name: state.input.me.name, price: r.products[0].price, cost: r.products[0].cost, target: state.input.me.target, pain: state.input.me.pain, features: state.input.me.features},
     competitors: r.products.slice(1).map(function(p){ return {name: p.name, price: p.price, rating: p.rating, reviews: p.reviews, features: p.featuresText, reviewExcerpts: String(p.reviewsText).slice(0, 800), aiEstimated: Object.keys(p.ai || {}).length > 0}; }),
     computed: {compAvgPrice: Math.round(r.price.avgComp || 0), myBand: r.products[0].band, myGapVsAvg: r.products[0].gap, marginRate: r.price.margin, positioning: E.QUADRANTS[r.positioning.quad].label,
@@ -1184,7 +1279,7 @@ function buildMarkdown(){
   var r = state.result, me = state.input.me, S = r.strategy, M = r.matrix;
   var L = [];
   L.push('# 電商競品分析報告：' + me.name);
-  L.push('類別：' + r.noun + '｜平台：' + r.platformLabel + '｜產生時間：' + new Date(r.ts).toLocaleString('zh-TW'));
+  L.push('類別：' + r.noun + '｜平台：' + r.platformLabel + '｜幣別：' + unit() + '｜產生時間：' + new Date(r.ts).toLocaleString('zh-TW'));
   L.push('', '## 總覽', r.summary);
   L.push('', '## 價格分析', '競品均價 ' + money(r.price.avgComp) + '；最低 ' + money(r.price.min) + '／中位數 ' + money(r.price.median) + '／最高 ' + money(r.price.max));
   r.products.forEach(function(p){ L.push('- ' + (p.isMe ? '★ ' : '') + p.name + '：' + money(p.price) + '（' + p.band + (p.gap != null ? '，與均價 ' + pct(p.gap, true) : '') + '）'); });
@@ -1210,7 +1305,7 @@ function buildPrintReport(){
   var me = state.input.me, S = r.strategy, M = r.matrix;
   function ul(a){ return '<ul>' + a.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>'; }
   var h = '<h1>電商競品分析報告：' + esc(me.name) + '</h1>'
-    + '<div class="meta">類別：' + esc(r.noun) + '｜平台：' + esc(r.platformLabel) + '｜' + new Date(r.ts).toLocaleString('zh-TW') + (settings.author ? '｜報告人：' + esc(settings.author) : '') + '</div>'
+    + '<div class="meta">類別：' + esc(r.noun) + '｜平台：' + esc(r.platformLabel) + '｜幣別：' + esc(unit()) + '｜' + new Date(r.ts).toLocaleString('zh-TW') + (settings.author ? '｜報告人：' + esc(settings.author) : '') + '</div>'
     + '<h2>一、總覽</h2><p>' + esc(r.summary) + '</p>'
     + '<h2>二、價格分析</h2><div class="blk">' + priceLadderSvg(r) + '</div>'
     + '<table><thead><tr><th>商品</th><th>售價</th><th>與均價差</th><th>價格帶</th><th>評分</th><th>評論數</th></tr></thead><tbody>'
@@ -1289,7 +1384,7 @@ function fillSettingsUI(){
   $('aiKey').value = settings.apiKey || '';
   $('setPlatform').value = settings.platform;
   $('feeGrid').innerHTML = Object.keys(E.PLATFORMS).map(function(k){ return '<label>' + esc(E.PLATFORMS[k].label) + '<input type="number" min="0" max="60" step="0.5" data-fee="' + k + '" value="' + esc(settings.fees[k]) + '"></label>'; }).join('');
-  $('setUnit').value = settings.unit;
+  $('setCurrency').value = settings.currency;
   $('setAutoSave').checked = !!settings.autoSave; $('setMarquee').checked = !!settings.marquee;
   $('setAuthor').value = settings.author || ''; $('setWatermark').checked = !!settings.watermark;
   applySettings();
@@ -1379,6 +1474,8 @@ function initPwa(){
 function init(){
   var platOpts = Object.keys(E.PLATFORMS).map(function(k){ return '<option value="' + k + '">' + esc(E.PLATFORMS[k].label) + '</option>'; }).join('');
   $('mPlatform').innerHTML = platOpts; $('setPlatform').innerHTML = platOpts;
+  var curOpts = Object.keys(CURRENCIES).map(function(k){ return '<option value="' + k + '">' + esc(CURRENCIES[k].label + '（' + CURRENCIES[k].sym + '）') + '</option>'; }).join('');
+  $('mCurrency').innerHTML = curOpts; $('setCurrency').innerHTML = curOpts;
   $('aiProvider').innerHTML = Object.keys(AI_PROVIDERS).map(function(k){ return '<option value="' + k + '">' + AI_PROVIDERS[k].label + '</option>'; }).join('');
   $('sampleChips').innerHTML = E.SAMPLES.map(function(s){ return '<button class="chip" type="button" data-sample="' + s.key + '">' + esc(s.label) + '</button>'; }).join(' ');
   fillSettingsUI();
@@ -1398,6 +1495,7 @@ function init(){
       curTab = t.getAttribute('data-tab');
       document.querySelectorAll('.tab').forEach(function(b){ b.classList.toggle('on', b === t); });
       document.querySelectorAll('.pane').forEach(function(p){ p.classList.toggle('on', p.id === 'pane-' + curTab); });
+      if(t.scrollIntoView) t.scrollIntoView({block:'nearest', inline:'center', behavior:'smooth'});
     } else if(t.hasAttribute('data-regen')){
       aiAnalyze([t.getAttribute('data-regen')]);
     } else if(t.hasAttribute('data-copy')){
@@ -1466,7 +1564,13 @@ function init(){
   });
   $('setPlatform').addEventListener('change', function(){ settings.platform = this.value; saveSettings(); });
   $('feeGrid').addEventListener('input', function(e){ var k = e.target.getAttribute('data-fee'); if(!k) return; var v = num(e.target.value); if(v != null && v >= 0 && v <= 60){ settings.fees[k] = v; saveSettings(); if(state.result) runAnalysis({keepAi:true, silent:true, noSave:true}); } });
-  $('setUnit').addEventListener('input', function(){ settings.unit = this.value.trim() || '元'; saveSettings(); if(state.result) runAnalysis({keepAi:true, silent:true, noSave:true}); });
+  $('setCurrency').addEventListener('change', function(){ settings.currency = this.value; saveSettings(); toast('預設幣別已設為 ' + CURRENCIES[this.value].label + '（新表單生效）'); });
+  $('mCurrency').addEventListener('change', function(){
+    setActiveCur(this.value); renderComps(); updateCurHint();
+    if(state.result) runAnalysis({keepAi:true, silent:true, noSave:true});
+    toast('幣別已切換為 ' + CURRENCIES[this.value].label + '（只換顯示單位，不做匯率換算）');
+  });
+  $('mPlatform').addEventListener('change', updateCurHint);
   $('setAutoSave').addEventListener('change', function(){ settings.autoSave = this.checked; saveSettings(); });
   $('setMarquee').addEventListener('change', function(){ settings.marquee = this.checked; saveSettings(); if(window.__applyMarquee) window.__applyMarquee(); });
   $('setAuthor').addEventListener('input', function(){ settings.author = this.value.trim(); saveSettings(); });

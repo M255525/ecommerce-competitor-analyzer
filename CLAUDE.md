@@ -20,8 +20,14 @@
 - `aiFill()`：只有品牌名時推測價格／評分／評論數／特色／評論，只填空欄，逐欄標 `comp.ai[k]`（UI 顯示「AI 推測」，使用者手改後自動移除）。
 - `aiAnalyze(sections)`：sections ⊂ `summary/proscons/position/strategy`；`validatePatch()` 逐欄驗證，不合格沿用規則式並在狀態列列出；結果存成 `state.aiPatch`，重新分析時以 `applyAiPatch()` 疊回（歷史紀錄也存 patch 而非整份結果）。
 
+## 幣別
+`CURRENCIES`（index.html）13 種，`dec` 決定小數位；表單 `#mCurrency` 存在 `input.me.currency`（舊紀錄沒有此欄位＝TWD），設定 `settings.currency` 只是新表單預設。`money()` 依 `activeCur` 加幣別符號；`roundPrice()` 有小數幣別取到 0.5／整數。**切換幣別只換顯示，不做匯率換算。**
+
+## RWD
+斷點 900px（平板：表單 2 欄、KPI 3 欄）與 560px（手機：表頭按鈕 3 欄格、表單 1 欄、輸入 16px 防 iOS 縮放、分頁單行可滑動、價格表 `table.cards` 轉卡片、特色矩陣第一欄 sticky、圖表 `.chart-wrap` 最小 540px 可橫滑、彈窗貼底）。分頁列 `.tabs` sticky（有跑馬燈時 top:30px）。A4 列印寬度會落在 ≤900 斷點，但列印只顯示 `#printReport`，不受影響。
+
 ## localStorage
-前綴 `ecaStudio.`：settings／draft／history／marquee／warned（首訪警語已讀）。「清除本機資料」刪除此前綴全部 key。
+前綴 `ecaStudio.`：settings（含 currency）／draft／history／marquee／warned（首訪警語已讀）。「清除本機資料」刪除此前綴全部 key。
 
 ## 測試
 `window.__eca`：`analyze(input)`、`getState()`、`loadSample(key)`、`validatePatch()`、`applyAiPatch()`、`analyzeReviews(text)`、`buildPrintReport()`、`buildMarkdown()`。
