@@ -84,7 +84,20 @@ input:focus,select:focus,textarea:focus{outline:2px solid rgba(228,87,46,.35);bo
 .btn:disabled{opacity:.55;cursor:not-allowed;}
 #aiStatus{font-size:.86rem;color:var(--sub);}
 
-#settings h3{margin-top:18px;}
+.set-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;}
+.set-head h2{margin:0;}
+.set-tools{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;}
+.set-sec{border:1px solid var(--border);border-radius:12px;margin-bottom:8px;background:var(--panel2);}
+.set-sec[open]{background:#fff;}
+.set-sec > summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:11px 14px;font-weight:700;color:var(--ink);user-select:none;}
+.set-sec > summary::-webkit-details-marker{display:none;}
+.set-sec > summary::after{content:'▸';margin-left:6px;color:var(--sub);transition:transform .2s;flex:0 0 auto;}
+.set-sec[open] > summary::after{transform:rotate(90deg);}
+.set-sec > summary:hover{color:var(--coral);}
+.set-sec > summary:focus-visible{outline:2px solid rgba(228,87,46,.45);border-radius:12px;}
+.set-sec .sst{flex:0 1 auto;min-width:0;}
+.set-sec .ssv{margin-left:auto;font-weight:400;font-size:.8rem;color:var(--sub);text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
+.set-sec > .set-grid,.set-sec > .about-row{padding:4px 14px 14px;}
 .set-grid{display:grid;gap:10px;}
 .set-row{display:grid;grid-template-columns:150px 1fr;gap:10px;align-items:center;}
 .set-row > span:first-child{font-size:.88rem;color:var(--sub);font-weight:600;}
@@ -259,6 +272,12 @@ footer{max-width:1180px;margin:0 auto;padding:0 16px 40px;text-align:center;}
   .comp .g > .field:first-child{grid-column:1/-1;}
   .comp .g2{grid-template-columns:1fr;}
   .set-row{grid-template-columns:1fr;}
+  .set-sec > summary{flex-wrap:wrap;padding:10px 12px;}
+  .set-sec .sst{flex:1 1 0;}
+  .set-sec > summary::after{order:2;}
+  .set-sec .ssv{flex:1 1 100%;order:3;margin-left:0;text-align:left;white-space:normal;}
+  .set-tools{margin-left:0;width:100%;}
+  .set-tools .btn{flex:1 1 auto;}
   .fee-grid{grid-template-columns:1fr 1fr;}
   .plan{grid-template-columns:1fr;}
   .tab{padding:6px 10px;font-size:.88rem;}
@@ -315,43 +334,68 @@ footer{max-width:1180px;margin:0 auto;padding:0 16px 40px;text-align:center;}
 <main class="wrap">
 
   <section class="panel" id="settings" hidden>
-    <h2>⚙ 常用設定 <small>設定只存在你這台裝置的瀏覽器</small></h2>
-    <h3>AI 服務（選填，自備金鑰）</h3>
-    <div class="set-grid">
-      <div class="set-row"><span>服務商</span><select id="aiProvider"></select></div>
-      <div class="set-row"><span>模型</span><div><select id="aiModel"></select><input type="text" id="aiModelCustom" placeholder="輸入模型 ID" style="display:none;margin-top:6px"></div></div>
-      <div class="set-row"><span>API 金鑰</span><div><input type="password" id="aiKey" placeholder="貼上金鑰" autocomplete="off">
-        <div class="key-note">金鑰只存在本機 localStorage，直接從瀏覽器呼叫服務商，不經過任何第三方伺服器。</div></div></div>
-      <div class="set-row"><span>&nbsp;</span><div><button class="btn ghost small" type="button" id="testAiBtn">🔌 測試連線</button> <span id="testAiMsg" class="key-note"></span></div></div>
+    <div class="set-head">
+      <h2>⚙ 常用設定 <small>設定只存在你這台裝置的瀏覽器</small></h2>
+      <div class="set-tools"><button class="btn ghost small" type="button" id="foldAllOpen">全部展開</button><button class="btn ghost small" type="button" id="foldAllClose">全部收合</button><button class="btn ghost small" type="button" id="settingsClose" aria-label="關閉常用設定">✕ 關閉</button></div>
     </div>
-    <h3>分析預設值</h3>
-    <div class="set-grid">
-      <div class="set-row"><span>預設銷售平台</span><select id="setPlatform"></select></div>
-      <div class="set-row"><span>平台費率估算（%）<br><small class="key-note">含成交手續費、金流費，依你的實際合約調整</small></span><div class="fee-grid" id="feeGrid"></div></div>
-      <div class="set-row"><span>預設幣別<br><small class="key-note">新表單帶入；每次分析可在表單另選</small></span><select id="setCurrency" style="max-width:260px"></select></div>
-    </div>
-    <h3>顯示</h3>
-    <div class="set-grid">
-      <div class="set-row"><span>字級</span>
-        <div class="seg" id="fsSeg"><button type="button" data-fs="">標準</button><button type="button" data-fs="l">大</button><button type="button" data-fs="xl">特大</button></div></div>
-      <div class="set-row"><span>其他</span><div>
-        <label class="inline"><input type="checkbox" id="setAutoSave"> 分析後自動存入歷史紀錄</label>
-        <label class="inline"><input type="checkbox" id="setMarquee"> 顯示頂部跑馬燈公告</label></div></div>
-    </div>
-    <h3>PDF 報告</h3>
-    <div class="set-grid">
-      <div class="set-row"><span>報告署名</span><input type="text" id="setAuthor" placeholder="例如：王小明／○○電商"></div>
-      <div class="set-row"><span>&nbsp;</span><div><label class="inline"><input type="checkbox" id="setWatermark"> PDF 加浮水印</label></div></div>
-      <div class="set-row"><span>&nbsp;</span><div><button class="btn ghost small" type="button" id="resetSetBtn">↺ 恢復預設設定</button> <button class="btn ghost small" type="button" id="clearLocalBtn">🗑 清除本機資料（設定、歷史、草稿）</button></div></div>
-    </div>
-    <h3>關於本工具</h3>
-    <div class="about-row">
-      <a class="btn ghost small" href="manual.html" target="_blank" rel="noopener" style="text-decoration:none">📖 操作手冊</a>
-      <button class="btn ghost small" type="button" data-open-about>⚠ 使用警語</button>
-      <button class="btn ghost small" type="button" data-open-about="creator">👤 創作者資訊</button>
-      <button class="btn ghost small" type="button" data-install>📲 加入主畫面</button>
-      <span class="key-note" style="display:inline-flex;align-items:center;gap:6px">訪客數 <img src="https://visitor-badge.laobi.icu/badge?page_id=m255525.ecommercecompetitoranalyzer" alt="訪客次數" height="20" loading="lazy"></span>
-    </div>
+
+    <details class="set-sec" data-sec="ai">
+      <summary><span class="sst">🤖 AI 服務（選填，自備金鑰）</span><span class="ssv" id="sumAi"></span></summary>
+      <div class="set-grid">
+        <div class="set-row"><span>服務商</span><select id="aiProvider"></select></div>
+        <div class="set-row"><span>模型</span><div><select id="aiModel"></select><input type="text" id="aiModelCustom" placeholder="輸入模型 ID" style="display:none;margin-top:6px"></div></div>
+        <div class="set-row"><span>API 金鑰</span><div><input type="password" id="aiKey" placeholder="貼上金鑰" autocomplete="off">
+          <div class="key-note">金鑰只存在本機 localStorage，直接從瀏覽器呼叫服務商，不經過任何第三方伺服器。</div></div></div>
+        <div class="set-row"><span>&nbsp;</span><div><button class="btn ghost small" type="button" id="testAiBtn">🔌 測試連線</button> <span id="testAiMsg" class="key-note"></span></div></div>
+      </div>
+    </details>
+
+    <details class="set-sec" data-sec="defaults">
+      <summary><span class="sst">🛒 分析預設值（平台、費率、幣別）</span><span class="ssv" id="sumDefaults"></span></summary>
+      <div class="set-grid">
+        <div class="set-row"><span>預設銷售平台</span><select id="setPlatform"></select></div>
+        <div class="set-row"><span>平台費率估算（%）<br><small class="key-note">含成交手續費、金流費，依你的實際合約調整</small></span><div class="fee-grid" id="feeGrid"></div></div>
+        <div class="set-row"><span>預設幣別<br><small class="key-note">新表單帶入；每次分析可在表單另選</small></span><select id="setCurrency" style="max-width:260px"></select></div>
+      </div>
+    </details>
+
+    <details class="set-sec" data-sec="display">
+      <summary><span class="sst">🖥 顯示與紀錄</span><span class="ssv" id="sumDisplay"></span></summary>
+      <div class="set-grid">
+        <div class="set-row"><span>字級</span>
+          <div class="seg" id="fsSeg"><button type="button" data-fs="">標準</button><button type="button" data-fs="l">大</button><button type="button" data-fs="xl">特大</button></div></div>
+        <div class="set-row"><span>其他</span><div>
+          <label class="inline"><input type="checkbox" id="setAutoSave"> 分析後自動存入歷史紀錄</label>
+          <label class="inline"><input type="checkbox" id="setMarquee"> 顯示頂部跑馬燈公告</label></div></div>
+      </div>
+    </details>
+
+    <details class="set-sec" data-sec="pdf">
+      <summary><span class="sst">📄 PDF 報告</span><span class="ssv" id="sumPdf"></span></summary>
+      <div class="set-grid">
+        <div class="set-row"><span>報告署名</span><input type="text" id="setAuthor" placeholder="例如：王小明／○○電商"></div>
+        <div class="set-row"><span>&nbsp;</span><div><label class="inline"><input type="checkbox" id="setWatermark"> PDF 加浮水印</label></div></div>
+      </div>
+    </details>
+
+    <details class="set-sec" data-sec="data">
+      <summary><span class="sst">🗄 資料管理</span><span class="ssv">恢復預設、清除本機資料</span></summary>
+      <div class="about-row">
+        <button class="btn ghost small" type="button" id="resetSetBtn">↺ 恢復預設設定（保留 AI 金鑰）</button>
+        <button class="btn ghost small" type="button" id="clearLocalBtn">🗑 清除本機資料（設定、歷史、草稿）</button>
+      </div>
+    </details>
+
+    <details class="set-sec" data-sec="about">
+      <summary><span class="sst">ℹ 關於本工具</span><span class="ssv">手冊、警語、創作者、加入主畫面、訪客數</span></summary>
+      <div class="about-row">
+        <a class="btn ghost small" href="manual.html" target="_blank" rel="noopener" style="text-decoration:none">📖 操作手冊</a>
+        <button class="btn ghost small" type="button" data-open-about>⚠ 使用警語</button>
+        <button class="btn ghost small" type="button" data-open-about="creator">👤 創作者資訊</button>
+        <button class="btn ghost small" type="button" data-install>📲 加入主畫面</button>
+        <span class="key-note" style="display:inline-flex;align-items:center;gap:6px">訪客數 <img src="https://visitor-badge.laobi.icu/badge?page_id=m255525.ecommercecompetitoranalyzer" alt="訪客次數" height="20" loading="lazy"></span>
+      </div>
+    </details>
   </section>
 
   <section class="panel" id="historyPanel">
@@ -499,7 +543,7 @@ var settings = (function(){
   delete o.unit;
   return o;
 })();
-function saveSettings(){ lsSet(SET_KEY, JSON.stringify(settings)); }
+function saveSettings(){ lsSet(SET_KEY, JSON.stringify(settings)); if(window.__ecaSum) window.__ecaSum(); }
 var activeCur = settings.currency;
 function cur(){ return CURRENCIES[activeCur] || CURRENCIES.TWD; }
 function unit(){ return activeCur + '（' + cur().sym + '）'; }
@@ -1142,7 +1186,7 @@ function aiTag(p, k){ return p.ai && p.ai[k] ? ' <span class="aibadge">AI</span>
 
 /* ================= AI ================= */
 function needKey(){
-  if(!settings.apiKey){ toast('請先在 ⚙ 常用設定填入 AI 金鑰'); openSettings(true); return true; }
+  if(!settings.apiKey){ toast('請先在 ⚙ 常用設定填入 AI 金鑰'); openSettings(true, 'ai'); setTimeout(function(){ try{ $('aiKey').focus({preventScroll:true}); }catch(e){} }, 400); return true; }
   return false;
 }
 function setStatus(msg){ $('aiStatus').innerHTML = msg || ''; }
@@ -1367,11 +1411,30 @@ function download(name, text){
 }
 
 /* ================= 設定面板 ================= */
-function openSettings(force){
+var FOLD_KEY = PREFIX + 'setOpen';
+function saveFold(){
+  var open = []; document.querySelectorAll('.set-sec').forEach(function(d){ if(d.open) open.push(d.getAttribute('data-sec')); });
+  lsSet(FOLD_KEY, JSON.stringify(open));
+}
+function restoreFold(){
+  var open = []; try{ open = JSON.parse(lsGet(FOLD_KEY) || '[]') || []; }catch(e){}
+  document.querySelectorAll('.set-sec').forEach(function(d){ d.open = open.indexOf(d.getAttribute('data-sec')) >= 0; });
+}
+function openSettings(force, secName){
   var sec = $('settings'), show = force === true ? true : sec.hidden;
   sec.hidden = !show;
   $('settingsBtn').setAttribute('aria-expanded', String(show));
-  if(show) sec.scrollIntoView({behavior:'smooth', block:'start'});
+  var target = sec;
+  if(show && secName){ var d = sec.querySelector('.set-sec[data-sec="' + secName + '"]'); if(d){ d.open = true; saveFold(); target = d; } }
+  if(show) target.scrollIntoView({behavior:'smooth', block:'start'});
+}
+function updateSetSummaries(){
+  var prov = AI_PROVIDERS[settings.provider] || AI_PROVIDERS.claude;
+  $('sumAi').textContent = prov.label.replace(/（.*）/, '') + '／' + (settings.model || prov.defaultModel) + '｜' + (settings.apiKey ? '✅ 已填金鑰' : '未填金鑰（規則式）');
+  var c = CURRENCIES[settings.currency] || CURRENCIES.TWD;
+  $('sumDefaults').textContent = E.PLATFORMS[settings.platform].label + '（費率 ' + settings.fees[settings.platform] + '%）｜' + c.label;
+  $('sumDisplay').textContent = '字級 ' + ({'':'標準', l:'大', xl:'特大'}[settings.fs || ''] || '標準') + '｜自動存歷史 ' + (settings.autoSave ? '開' : '關') + '｜跑馬燈 ' + (settings.marquee ? '開' : '關');
+  $('sumPdf').textContent = (settings.author ? '署名：' + settings.author : '未署名') + '｜浮水印 ' + (settings.watermark ? '開' : '關');
 }
 function applySettings(){
   document.body.classList.remove('fs-l','fs-xl');
@@ -1551,6 +1614,12 @@ function init(){
 
   $('historyBtn').addEventListener('click', function(){ var p = $('historyPanel'); p.classList.toggle('show'); if(p.classList.contains('show')){ renderHistory(); p.scrollIntoView({behavior:'smooth'}); } });
   $('settingsBtn').addEventListener('click', function(){ openSettings(); });
+  $('settingsClose').addEventListener('click', function(){ $('settings').hidden = true; $('settingsBtn').setAttribute('aria-expanded', 'false'); });
+  restoreFold();
+  document.querySelectorAll('.set-sec').forEach(function(d){ d.addEventListener('toggle', saveFold); });
+  $('foldAllOpen').addEventListener('click', function(){ document.querySelectorAll('.set-sec').forEach(function(d){ d.open = true; }); saveFold(); });
+  $('foldAllClose').addEventListener('click', function(){ document.querySelectorAll('.set-sec').forEach(function(d){ d.open = false; }); saveFold(); });
+  window.__ecaSum = updateSetSummaries; updateSetSummaries();
   $('aiProvider').addEventListener('change', function(){ renderModelOptions(this.value, ''); persistApiConfig(); });
   $('aiModel').addEventListener('change', function(){ $('aiModelCustom').style.display = this.value === 'custom' ? 'block' : 'none'; persistApiConfig(); });
   $('aiModelCustom').addEventListener('input', persistApiConfig);
@@ -1583,7 +1652,7 @@ function init(){
   $('clearLocalBtn').addEventListener('click', function(){
     try{ Object.keys(localStorage).filter(function(k){ return k.indexOf(PREFIX) === 0; }).forEach(lsDel); }catch(e){}
     settings = JSON.parse(JSON.stringify(DEFAULTS)); settings.fees = defaultFees();
-    fillSettingsUI(); writeInput(null); renderHistory(); toast('已清除本機資料');
+    fillSettingsUI(); restoreFold(); updateSetSummaries(); writeInput(null); renderHistory(); toast('已清除本機資料');
   });
   $('aboutClose').addEventListener('click', closeAbout);
   $('aboutOk').addEventListener('click', closeAbout);

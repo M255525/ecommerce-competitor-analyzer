@@ -26,8 +26,11 @@
 ## RWD
 斷點 900px（平板：表單 2 欄、KPI 3 欄）與 560px（手機：表頭按鈕 3 欄格、表單 1 欄、輸入 16px 防 iOS 縮放、分頁單行可滑動、價格表 `table.cards` 轉卡片、特色矩陣第一欄 sticky、圖表 `.chart-wrap` 最小 540px 可橫滑、彈窗貼底）。分頁列 `.tabs` sticky（有跑馬燈時 top:30px）。A4 列印寬度會落在 ≤900 斷點，但列印只顯示 `#printReport`，不受影響。
 
+## ⚙ 常用設定（收合式）
+6 個 `<details class="set-sec" data-sec>`：ai／defaults／display／pdf／data／about；summary 右側 `.ssv` 由 `updateSetSummaries()` 顯示目前值（`saveSettings()` 會觸發）。展開狀態存 `ecaStudio.setOpen`；`openSettings(true, 'ai')` 可直接打開指定區塊（沒填金鑰時用）。**class 名不要用 `.st`／`.sv`，`.st` 已是銷售策略卡片樣式。**
+
 ## localStorage
-前綴 `ecaStudio.`：settings（含 currency）／draft／history／marquee／warned（首訪警語已讀）。「清除本機資料」刪除此前綴全部 key。
+前綴 `ecaStudio.`：settings（含 currency）／setOpen（設定區塊展開狀態）／draft／history／marquee／warned（首訪警語已讀）。「清除本機資料」刪除此前綴全部 key。
 
 ## 測試
 `window.__eca`：`analyze(input)`、`getState()`、`loadSample(key)`、`validatePatch()`、`applyAiPatch()`、`analyzeReviews(text)`、`buildPrintReport()`、`buildMarkdown()`。
