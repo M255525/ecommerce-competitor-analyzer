@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>操作手冊｜AI 電商競品分析系統</title>
+<link rel="icon" href="icons/icon-192.png">
+<style>
+:root{--ink:#13293d;--coral:#e4572e;--sub:#5f6b7a;--border:#dde3ea;--bg:#f3f5f7;}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:#17212b;font-family:"Segoe UI","Microsoft JhengHei","PingFang TC","Noto Sans TC",sans-serif;line-height:1.75;}
+header{background:linear-gradient(120deg,#13293d,#24476b);color:#fff;padding:22px 16px;}
+header .w{max-width:900px;margin:0 auto;}
+header h1{margin:0;font-size:1.5rem;} header p{margin:4px 0 0;color:#c9d6e3;}
+header a{color:#ffb38a;}
+main{max-width:900px;margin:0 auto;padding:18px 16px 40px;}
+nav{background:#fff;border:1px solid var(--border);border-radius:12px;padding:10px 16px;margin-bottom:16px;}
+nav a{margin-right:14px;white-space:nowrap;color:#24476b;}
+section{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:16px;}
+h2{margin:0 0 8px;color:var(--ink);font-size:1.2rem;border-bottom:2px solid var(--coral);padding-bottom:4px;}
+table{width:100%;border-collapse:collapse;font-size:.92rem;}
+th,td{border-bottom:1px solid var(--border);padding:6px 8px;text-align:left;vertical-align:top;}
+th{background:#f7f9fb;white-space:nowrap;}
+.tip{background:#e0f4f1;border-left:4px solid #17a398;border-radius:6px;padding:8px 12px;margin:8px 0;}
+.warn{background:#fff7e8;border-left:4px solid #d08a1e;border-radius:6px;padding:8px 12px;}
+code{background:#eef2f6;border-radius:4px;padding:0 4px;}
+</style>
+</head>
+<body>
+<header><div class="w">
+<h1>📖 AI 電商競品分析系統｜操作手冊</h1>
+<p>輸入商品或競爭品牌 → 分析價格與商品特色 → 整理競品優缺點 → 產品定位與銷售策略。<a href="index.html">← 回到工具</a></p>
+</div></header>
+<main>
+<nav><a href="#quick">快速開始</a><a href="#input">輸入資料</a><a href="#result">六個分析分頁</a><a href="#ai">AI 功能</a><a href="#settings">常用設定</a><a href="#export">匯出與紀錄</a><a href="#faq">常見問題</a><a href="#warn">使用警語</a><a href="#creator">創作者</a></nav>
+
+<section id="quick">
+<h2>快速開始（1 分鐘）</h2>
+<ol>
+<li>點上方任一個<b>範例</b>（保溫瓶、藍牙耳機、貓飼料…），系統會自動填好資料並完成分析。</li>
+<li>往下看「② 分析結果」的六個分頁：總覽、價格分析、商品特色、競品優缺點、產品定位、銷售策略。</li>
+<li>換成自己的商品：按「🧹 清空表單」，填入你的商品與 1～8 個競品，再按「⚡ 開始分析」。</li>
+</ol>
+<div class="tip">不需要任何金鑰就能使用全部分析（規則式）。有自己的 AI 金鑰時，可以再按「✨ AI 深化分析」讓文字更貼近你的商品。</div>
+</section>
+
+<section id="input">
+<h2>輸入資料</h2>
+<table>
+<tr><th>欄位</th><th>說明</th></tr>
+<tr><td>我的商品：名稱、售價 <b>（必填）</b></td><td>售價用來算價格帶與定位。</td></tr>
+<tr><td>成本</td><td>填了才能算單件毛利與「最低安全售價」（成本＋平台費＋15% 毛利）。</td></tr>
+<tr><td>主要銷售平台</td><td>決定平台費率與平台操作建議（蝦皮、momo、PChome、Amazon、品牌官網、其他）。</td></tr>
+<tr><td>評分／評論數</td><td>新品可以留空，系統以中間值估算。</td></tr>
+<tr><td>商品特色</td><td>用逗號或換行分隔，例如「316不鏽鋼, 輕量 260g, 一年保固」。系統會比對 34 類常見特色（材質、防水、保固、認證、禮盒…），比對不到的列在「其他未歸類特色」。</td></tr>
+<tr><td>競品：品牌／商品名 <b>（必填）</b></td><td>至少 1 個、最多 8 個，至少一個競品要有售價。</td></tr>
+<tr><td>競品評論摘錄</td><td>直接貼上競品頁面的顧客評論（好評、負評都貼），系統會逐句判斷正負面與面向（品質、密封、價格、出貨…），整理成優缺點與「競品共通痛點」。</td></tr>
+</table>
+<div class="tip">只知道競品品牌名？填好名稱後按「🤖 AI 補齊競品資料」，AI 會推測售價、評分、特色與常見評論，欄位旁會標示「AI 推測」。<b>請一定要對照競品實際頁面修正</b>，你手動修改過的欄位標示會自動移除。</div>
+</section>
+
+<section id="result">
+<h2>六個分析分頁</h2>
+<table>
+<tr><th>分頁</th><th>內容</th></tr>
+<tr><td>📊 總覽</td><td>競品數、競品均價、我的售價與均價差、預估毛利率、差異點／缺口數、目前定位，加上摘要、建議售價區間與最優先的三件事。</td></tr>
+<tr><td>💰 價格分析</td><td>價格梯（低／中／高價帶）、中位數與分位數、我的價格排名、各商品比較表、單件毛利試算（毛利率低於 15% 會警告）。</td></tr>
+<tr><td>🧩 商品特色</td><td>特色矩陣（✓／–）與「競品具備率」，並自動分出：<b>市場基本要求</b>（多數競品都有）、<b>你的差異點</b>（只有你有）、<b>待補缺口</b>（半數以上競品有、你沒有）。</td></tr>
+<tr><td>⚖ 競品優缺點</td><td>每個商品一張卡：獨有特色、價格位置、評分與評論數判斷，再加上評論摘錄抽出的正負面重點；下方整理競品共通痛點。</td></tr>
+<tr><td>🎯 產品定位</td><td>定位圖：X 軸價格、Y 軸價值分數（特色豐富度 55%＋評分 30%＋評論數 15%），以中位數切成四區——精品型、CP 值型、入門型、高價低值。產出定位陳述與市場機會（例如哪一區沒有競品）。</td></tr>
+<tr><td>🚀 銷售策略</td><td>依你的定位給：建議售價區間與定價策略、3 則主打賣點文案（可一鍵複製）、促銷組合、評論經營、廣告關鍵字方向、從競品痛點切入的做法、平台操作提醒、30 天行動計畫、風險提醒。</td></tr>
+</table>
+<div class="tip">每個區塊標題旁的「規則式」／「AI」標籤，告訴你這段內容是哪一種方式產生的。</div>
+</section>
+
+<section id="ai">
+<h2>AI 功能（選用，自備金鑰）</h2>
+<ul>
+<li>到「⚙ 常用設定」選服務商（Claude、OpenAI、Gemini、OpenRouter）、模型並貼上金鑰，可按「🔌 測試連線」。</li>
+<li><b>✨ AI 深化分析</b>：重寫摘要、優缺點、定位陳述、市場機會與整套銷售策略。</li>
+<li><b>✨ AI 重新產生此區塊</b>：只重寫該分頁。</li>
+<li>AI 回傳的每個欄位都會檢查格式，不合格的欄位自動沿用規則式結果，並在狀態列告訴你哪些沿用。</li>
+<li><b>價格統計、毛利、定位座標與建議售價區間一律由本工具計算</b>，不採用 AI 給的數字。</li>
+<li>金鑰只存在你的瀏覽器，資料直接從瀏覽器送到你選的服務商，API 費用依你的方案計算。</li>
+</ul>
+</section>
+
+<section id="settings">
+<h2>⚙ 常用設定</h2>
+<ul>
+<li><b>預設銷售平台</b>：新表單預設帶入的平台。</li>
+<li><b>平台費率估算</b>：每個平台一個百分比（預設為概估值），請依你的實際合約、活動抽成調整，會立即重新計算毛利與最低安全售價。</li>
+<li><b>金額單位</b>：預設「元」，賣 Amazon 可改成「USD」。</li>
+<li>字級、分析後自動存歷史、頂部跑馬燈、PDF 署名與浮水印。</li>
+<li>「恢復預設設定」會保留 AI 金鑰；「清除本機資料」會刪掉本工具在這台裝置的所有設定、歷史與草稿。</li>
+<li>最下方「關於本工具」集中操作手冊、使用警語、創作者資訊、加入主畫面與訪客數。</li>
+</ul>
+</section>
+
+<section id="export">
+<h2>匯出與紀錄</h2>
+<ul>
+<li><b>📄 下載 PDF 報告</b>：開啟列印視窗，目的地選「另存為 PDF」。報告包含六大段落、價格梯與定位圖。</li>
+<li><b>📋 複製文字報告</b>：Markdown 格式，可貼到 Notion、Google 文件或 LINE。</li>
+<li><b>💾 存入歷史／🗂 歷史紀錄</b>：最多 30 筆，存在這台裝置；可匯出／匯入 JSON 在不同電腦之間搬移。</li>
+<li>表單會自動存成草稿，重新整理頁面不會遺失。</li>
+<li><b>📲 加入主畫面</b>：手機或電腦都能像 App 一樣開啟。</li>
+</ul>
+</section>
+
+<section id="faq">
+<h2>常見問題</h2>
+<p><b>Q：會不會自動抓蝦皮、momo 的價格？</b><br>不會。本工具不連線任何電商網站，資料都由你輸入，或由 AI 推測後你自行查核。</p>
+<p><b>Q：為什麼特色矩陣沒有我寫的某個特色？</b><br>系統只比對常見的 34 類特色，其他寫法會列在「其他未歸類特色」，仍會計入價值分數（權重較低）。</p>
+<p><b>Q：評論的優缺點判斷準嗎？</b><br>規則式只做簡單的正負面詞比對，適合快速整理；複雜語氣（反諷、比較句）可能誤判，可用 AI 深化分析補強。</p>
+<p><b>Q：同樣資料每次結果都一樣嗎？</b><br>規則式分析是確定性的，同樣輸入一定同樣結果；AI 每次可能略有不同。</p>
+</section>
+
+<section id="warn">
+<h2>⚠ 使用警語</h2>
+<div class="warn"><ul>
+<li>本工具產生的價格分析、優缺點、定位與銷售策略僅供教學、發想與討論參考，不構成任何經營、投資或法律建議，實際決策請自行查證。</li>
+<li>分析結果完全依你輸入的資料計算；「AI 補齊競品資料」的價格、評分、評論數與特色是 AI 推測值，可能與實際不符，請以競品實際頁面為準。</li>
+<li>本工具不會爬取或連線任何電商網站；貼入的評論摘錄請只做內部分析使用，不要公開轉貼他人評論或競品素材。</li>
+<li>對競品的描述請保持客觀；在廣告或商品頁中直接點名比較競品，可能涉及公平交易法、商標法或平台規範，使用前請先確認。</li>
+<li>請勿輸入真實個資或公司機密。表單、設定與歷史紀錄只存在你自己瀏覽器的 localStorage，不會上傳到本工具的任何伺服器。</li>
+<li>填有 API 金鑰時，商品資料會直接從你的瀏覽器送到你選擇的 AI 服務商；金鑰只存在你的瀏覽器，API 費用依你與服務商的方案計算。</li>
+<li>範例中的品牌、商品與評論全部為虛構，如有雷同純屬巧合。</li>
+<li>僅供教學、課程及個人使用，禁止未經授權公開發布、販售或商業化使用。</li>
+</ul></div>
+</section>
+
+<section id="creator">
+<h2>創作者</h2>
+<div class="mk-creator">
+<style>.mk-creator{line-height:1.75}.mk-creator h3{margin:14px 0 6px;font-size:1.05em}.mk-creator table{width:100%;border-collapse:collapse;font-size:.95em}.mk-creator td,.mk-creator th{text-align:left;padding:5px 6px;border-bottom:1px solid rgba(128,128,128,.3);vertical-align:top}.mk-creator th{white-space:nowrap}.mk-creator ul{margin:4px 0;padding-left:1.4em}.mk-creator .mk-tags{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0}.mk-creator .mk-tags span{border:1px solid rgba(128,128,128,.45);border-radius:999px;padding:1px 10px;font-size:.9em}</style>
+<p><b>Mark Tsai（蔡豐全）</b>為深耕創業輔導與數位轉型領域的顧問與講師，長期擔任勞動力發展署創業顧問與多項政府計畫的顧問、業師與評審委員，協助中小企業導入數據分析與 AI 工具、申請政府補助計畫，並具備跨境電商實務與講師培訓的豐富經驗。本工具是其推廣 AI 工具運用於教學與課程情境的作品之一。</p>
+<p>聯絡信箱：<a href="mailto:tsaimark@gmail.com">tsaimark@gmail.com</a></p>
+<h3>專長</h3>
+<div class="mk-tags"><span>銷售數據分析</span><span>AI 工具運用</span><span>政府補助計畫申請</span><span>創業</span><span>跨境電商</span></div>
+<h3>證照</h3>
+<table>
+<thead><tr><th>年度</th><th>證照</th></tr></thead>
+<tbody>
+<tr><td>2013</td><td>青創總會 創業輔導顧問師班</td></tr>
+<tr><td>2014</td><td>青創總會 網路行銷講師培訓班</td></tr>
+<tr><td>2016</td><td>阿里巴巴 P4P 認證講師</td></tr>
+<tr><td>2017</td><td>iCap 訓練規劃與評量職能基準課程</td></tr>
+<tr><td>2023</td><td>iCap 職能導向課程申請認證實作班</td></tr>
+<tr><td>2025</td><td>iPAS AI 應用規劃師－初級</td></tr>
+<tr><td>2025</td><td>新北市社會局 社區數位陪伴員</td></tr>
+</tbody>
+</table>
+<h3>經歷</h3>
+<ul>
+<li>勞動力發展署桃竹苗分署 創業顧問（2017－迄今）</li>
+<li>勞動力發展署（北北基）小型企業人力提升計畫 顧問（2019－迄今）</li>
+<li>勞動力發展署（桃竹苗）小型企業人力提升計畫 顧問（2019－迄今）</li>
+<li>農業部農業科技司「科技農企業雙軸轉型躍升發展」科技計畫 業師（2025－2026）</li>
+<li>勞動力發展署 企業人力資源提升計畫 審查委員（2024）</li>
+<li>勞動力發展署 職前訓練評鑑計畫 委員（2022）</li>
+<li>勞動部桃竹苗分署 桃竹苗區域運籌人力資源整合服務計畫 顧問（2022－2023）</li>
+<li>經濟部中小企業處 SBIR 海選專案 評審委員（2019－2024）</li>
+<li>勞動力發展署 數位學習課程清單審查會議 審查委員（2024－2025）</li>
+<li>輔仁大學創新跨領域學院 課務委員（2024－2025）</li>
+<li>台北市進出口商業同業公會 跨境電商生態村 顧問</li>
+<li>台灣網商協會 顧問</li>
+<li>中華職能開發策進會 顧問（2018－2020）</li>
+<li>新北市汽車美容人員職業工會 顧問（2023－迄今）</li>
+<li>中華網路行銷講師協會 顧問（2022－迄今）</li>
+<li>新北市社企電商基地 輔導顧問（2018－2020）</li>
+<li>阿里巴巴國際站平台 認證講師（2016）</li>
+<li>巨匠電腦 跨境電子商務班 講師（2016－2017）</li>
+</ul>
+</div>
+</section>
+</main>
+</body>
+</html>

@@ -1,0 +1,1511 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 電商競品分析系統</title>
+<meta name="description" content="輸入你的商品與競爭品牌，自動分析價格帶、商品特色矩陣、競品優缺點，產出產品定位與銷售策略，可下載 PDF。">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#13293d">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="電商競品分析">
+<style>
+:root{
+  --bg:#f3f5f7; --panel:#ffffff; --panel2:#f7f9fb; --border:#dde3ea; --text:#17212b; --sub:#5f6b7a;
+  --ink:#13293d; --ink2:#24476b; --coral:#e4572e; --coral-soft:#fde9e2; --teal:#17a398; --teal-soft:#e0f4f1;
+  --gold:#d08a1e; --red:#d1495b; --green:#1f9e74; --me:#e4572e;
+}
+*{box-sizing:border-box;}
+html{font-size:16px;}
+body.fs-l{font-size:17.5px;} body.fs-xl{font-size:19px;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Segoe UI","Microsoft JhengHei","PingFang TC","Noto Sans TC",sans-serif;line-height:1.6;}
+button,input,select,textarea{font:inherit;color:inherit;}
+a{color:var(--ink2);}
+#marqueeBar{position:fixed;top:0;left:0;right:0;height:30px;background:#0b1a28;z-index:2100;overflow:hidden;display:none;align-items:center;}
+#marqueeBar.show{display:flex;}
+#marqueeTrack{display:inline-block;white-space:nowrap;padding-left:100%;font-size:13px;font-weight:600;color:#ffb38a;animation:marquee-scroll 30s linear infinite;}
+#marqueeBar:hover #marqueeTrack{animation-play-state:paused;}
+body.has-marquee{padding-top:30px;}
+@keyframes marquee-scroll{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+
+header{background:linear-gradient(120deg,#13293d 0%,#1d3f5e 60%,#24476b 100%);color:#fff;padding:22px 16px 20px;}
+.hwrap{max-width:1180px;margin:0 auto;display:flex;gap:16px;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;}
+header h1{margin:0;font-size:1.65rem;letter-spacing:.5px;}
+header h1 span{color:#ff9a76;}
+header p{margin:6px 0 0;color:#c9d6e3;font-size:.92rem;max-width:640px;}
+.hbtns{display:flex;gap:8px;flex-wrap:wrap;}
+.hbtn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:999px;padding:6px 14px;cursor:pointer;text-decoration:none;font-size:.88rem;white-space:nowrap;}
+.hbtn:hover{background:rgba(255,255,255,.2);}
+
+.wrap{max-width:1180px;margin:0 auto;padding:18px 16px 30px;}
+.panel{scroll-margin-top:44px;background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:18px 20px;margin-bottom:18px;box-shadow:0 1px 2px rgba(19,41,61,.04);}
+.panel h2{margin:0 0 12px;font-size:1.18rem;color:var(--ink);}
+.panel h2 small{font-weight:400;color:var(--sub);font-size:.8rem;margin-left:6px;}
+.panel h3{margin:16px 0 8px;font-size:1rem;color:var(--ink2);}
+.muted{color:var(--sub);font-size:.86rem;}
+.samples{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:12px;}
+.chip{border:1px solid var(--border);background:var(--panel2);border-radius:999px;padding:3px 12px;cursor:pointer;font-size:.85rem;}
+.chip:hover{border-color:var(--coral);color:var(--coral);}
+
+.form-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px 14px;}
+.field{display:flex;flex-direction:column;gap:3px;min-width:0;}
+.field.w2{grid-column:span 2;} .field.w4{grid-column:1/-1;}
+.field label{font-size:.82rem;color:var(--sub);font-weight:600;}
+.field label em{color:var(--coral);font-style:normal;}
+input[type=text],input[type=number],input[type=password],select,textarea{border:1px solid var(--border);border-radius:8px;padding:7px 10px;background:#fff;width:100%;min-width:0;}
+textarea{resize:vertical;min-height:58px;}
+input:focus,select:focus,textarea:focus{outline:2px solid rgba(228,87,46,.35);border-color:var(--coral);}
+
+.me-box{border:2px solid var(--coral);background:linear-gradient(0deg,#fff,#fff8f5);border-radius:12px;padding:14px;}
+.me-box .tag{display:inline-block;background:var(--coral);color:#fff;border-radius:6px;padding:0 8px;font-size:.78rem;font-weight:700;margin-bottom:8px;}
+.comp-list{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:12px;}
+.comp{border:1px solid var(--border);border-radius:12px;padding:12px;background:var(--panel2);position:relative;}
+.comp .ch{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.comp .ch b{color:var(--ink);font-size:.92rem;}
+.comp .del{margin-left:auto;border:none;background:none;cursor:pointer;color:var(--sub);font-size:1rem;}
+.comp .del:hover{color:var(--red);}
+.comp .g{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:8px;}
+.comp .g2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;}
+.aibadge{display:inline-block;background:#efe7fb;color:#6b46c1;border-radius:6px;padding:0 6px;font-size:.72rem;font-weight:700;}
+.srcbadge{display:inline-block;border-radius:6px;padding:0 6px;font-size:.72rem;font-weight:700;margin-left:6px;vertical-align:middle;}
+.src-rule{background:#e8edf2;color:#4a5a6a;} .src-ai{background:#efe7fb;color:#6b46c1;}
+
+.actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px;}
+.btn{border:1px solid transparent;border-radius:10px;padding:8px 16px;cursor:pointer;font-weight:600;font-size:.92rem;}
+.btn.primary{background:var(--coral);color:#fff;} .btn.primary:hover{background:#cc4721;}
+.btn.ink{background:var(--ink);color:#fff;} .btn.ink:hover{background:var(--ink2);}
+.btn.ai{background:#6b46c1;color:#fff;} .btn.ai:hover{background:#5a37a8;}
+.btn.ghost{background:#fff;border-color:var(--border);color:var(--ink);} .btn.ghost:hover{border-color:var(--ink2);}
+.btn.small{padding:5px 11px;font-size:.84rem;}
+.btn:disabled{opacity:.55;cursor:not-allowed;}
+#aiStatus{font-size:.86rem;color:var(--sub);}
+
+#settings h3{margin-top:18px;}
+.set-grid{display:grid;gap:10px;}
+.set-row{display:grid;grid-template-columns:150px 1fr;gap:10px;align-items:center;}
+.set-row > span:first-child{font-size:.88rem;color:var(--sub);font-weight:600;}
+.key-note{font-size:.78rem;color:var(--sub);}
+label.inline{display:inline-flex;gap:6px;align-items:center;margin-right:16px;font-size:.9rem;}
+.seg{display:inline-flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.seg button{border:none;background:#fff;padding:5px 14px;cursor:pointer;}
+.seg button.on{background:var(--ink);color:#fff;}
+.fee-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.fee-grid label{display:flex;align-items:center;gap:6px;font-size:.85rem;}
+.fee-grid input{width:70px;}
+.about-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+
+#historyPanel{display:none;}
+#historyPanel.show{display:block;}
+.hist-item{display:flex;gap:10px;align-items:center;border-bottom:1px dashed var(--border);padding:7px 0;font-size:.9rem;}
+.hist-item .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.hist-item .d{color:var(--sub);font-size:.8rem;white-space:nowrap;}
+
+#result{display:none;}
+#result.show{display:block;}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;border-bottom:2px solid var(--border);margin-bottom:16px;}
+.tab{border:none;background:none;padding:8px 14px;cursor:pointer;font-weight:600;color:var(--sub);border-bottom:3px solid transparent;margin-bottom:-2px;}
+.tab.on{color:var(--coral);border-bottom-color:var(--coral);}
+.pane{display:none;} .pane.on{display:block;}
+.pane-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;}
+.pane-head h3{margin:0;}
+.pane-head .btn{margin-left:auto;}
+
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px;}
+.kpi{background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:10px 12px;}
+.kpi .l{font-size:.78rem;color:var(--sub);}
+.kpi .v{font-size:1.35rem;font-weight:700;color:var(--ink);line-height:1.3;}
+.kpi .s{font-size:.78rem;color:var(--sub);}
+.kpi.hl{border-color:var(--coral);background:var(--coral-soft);}
+.summary{background:var(--teal-soft);border-left:4px solid var(--teal);border-radius:8px;padding:10px 14px;margin:8px 0 14px;}
+.ok{color:var(--green);} .warn{color:var(--gold);} .bad{color:var(--red);}
+
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+table.t{width:100%;border-collapse:collapse;font-size:.88rem;}
+table.t th,table.t td{border-bottom:1px solid var(--border);padding:6px 8px;text-align:left;vertical-align:top;}
+table.t th{background:var(--panel2);color:var(--ink2);white-space:nowrap;font-size:.82rem;}
+table.t td.num,table.t th.num{text-align:right;white-space:nowrap;}
+table.t tr.me td{background:#fff5f1;font-weight:600;}
+table.mx td.c,table.mx th.c{text-align:center;}
+table.mx td.y{color:var(--green);font-weight:700;}
+table.mx td.n{color:#c0c8d2;}
+table.mx tr.dim td{background:#eef2f6;font-weight:700;color:var(--ink2);font-size:.8rem;}
+table.mx th.me,table.mx td.me{background:#fff5f1;}
+
+.chips3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px;}
+.box{border:1px solid var(--border);border-radius:12px;padding:10px 12px;background:var(--panel2);}
+.box h4{margin:0 0 6px;font-size:.92rem;}
+.pill{display:inline-block;border-radius:999px;padding:2px 10px;margin:2px 4px 2px 0;font-size:.82rem;border:1px solid var(--border);background:#fff;}
+.pill.g{border-color:#9fd9c5;background:#e8f7f1;color:#147a59;}
+.pill.r{border-color:#f1b6be;background:#fdeef0;color:#a52a3c;}
+.pill.b{border-color:#b8c8da;background:#eef3f8;color:#24476b;}
+
+.pc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+.pc{border:1px solid var(--border);border-radius:12px;padding:12px 14px;background:#fff;}
+.pc.me{border:2px solid var(--coral);}
+.pc h4{margin:0;font-size:1rem;color:var(--ink);}
+.pc .meta{font-size:.8rem;color:var(--sub);margin:2px 0 8px;}
+.pc ul{margin:0;padding-left:20px;font-size:.88rem;}
+.pc .pros li::marker{content:"＋ ";color:var(--green);font-weight:700;}
+.pc .cons li::marker{content:"－ ";color:var(--red);font-weight:700;}
+.pc .lbl{font-size:.8rem;font-weight:700;margin-top:6px;}
+
+.chart{width:100%;max-width:760px;display:block;margin:0 auto;}
+.chart-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.chart-wrap > .chart{min-width:540px;}
+.chart text{font-family:inherit;}
+.qcard{border-left:5px solid var(--coral);background:var(--panel2);border-radius:8px;padding:10px 14px;margin:12px 0;}
+.qcard b{font-size:1.05rem;}
+.statement{font-size:1.02rem;background:#fff;border:1px dashed var(--ink2);border-radius:10px;padding:12px 14px;margin:8px 0;}
+
+.st-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+.st{border:1px solid var(--border);border-radius:12px;padding:12px 14px;background:#fff;}
+.st h4{margin:0 0 6px;color:var(--ink);font-size:.98rem;}
+.st ul,.st ol{margin:0;padding-left:20px;font-size:.9rem;}
+.st.full{grid-column:1/-1;}
+.price-range{font-size:1.25rem;font-weight:700;color:var(--coral);}
+.plan{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.plan .wk{background:var(--panel2);border-radius:10px;padding:10px;border-top:4px solid var(--teal);}
+.plan .wk b{display:block;margin-bottom:4px;color:var(--ink);}
+.plan .wk ul{padding-left:18px;font-size:.85rem;margin:0;}
+.copyline{display:flex;gap:8px;align-items:flex-start;padding:4px 0;border-bottom:1px dashed var(--border);}
+.copyline span{flex:1;}
+.copyline button{border:1px solid var(--border);background:#fff;border-radius:6px;cursor:pointer;font-size:.75rem;padding:1px 8px;white-space:nowrap;}
+
+footer{max-width:1180px;margin:0 auto;padding:0 16px 40px;text-align:center;}
+.warn-box{background:var(--panel);border:1px solid var(--border);border-left:4px solid var(--gold);border-radius:12px;padding:14px 18px;text-align:left;color:var(--sub);font-size:.82rem;}
+.warn-box strong{display:block;color:var(--ink);margin-bottom:6px;font-size:.9rem;}
+.warn-box ul{margin:0;padding-left:18px;line-height:1.75;}
+.creator-box{margin-top:12px;font-size:.85rem;color:var(--sub);}
+
+.modal{position:fixed;inset:0;background:rgba(10,20,30,.55);display:none;align-items:center;justify-content:center;z-index:3000;padding:16px;}
+.modal.show{display:flex;}
+.modal .card{background:#fff;border-radius:16px;max-width:640px;width:100%;max-height:90vh;overflow:auto;padding:20px 22px;}
+.modal h2{margin:0 0 6px;font-size:1.2rem;color:var(--ink);display:flex;align-items:center;}
+.modal h2 .x{margin-left:auto;border:none;background:none;font-size:1.2rem;cursor:pointer;}
+.modal ul{padding-left:20px;font-size:.88rem;line-height:1.75;color:#333;}
+.modal .creator{background:var(--panel2);border-radius:10px;padding:10px 14px;font-size:.86rem;}
+.modal .foot{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px;}
+.modal .foot .btn:last-child{margin-left:auto;}
+
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:#13293d;color:#fff;padding:9px 18px;border-radius:999px;font-size:.88rem;opacity:0;pointer-events:none;transition:.25s;z-index:3500;max-width:90vw;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+#printReport,#pdfWatermark{display:none;}
+
+@media (max-width:900px){
+  .form-grid{grid-template-columns:repeat(2,1fr);}
+  .comp-list,.pc-grid,.st-grid{grid-template-columns:1fr;}
+  .chips3{grid-template-columns:1fr;}
+  .plan{grid-template-columns:repeat(2,1fr);}
+}
+@media (max-width:560px){
+  header h1{font-size:1.35rem;}
+  .panel{padding:14px 14px;}
+  .form-grid{grid-template-columns:1fr;}
+  .field.w2{grid-column:auto;}
+  .comp .g{grid-template-columns:1fr 1fr;}
+  .comp .g > .field:first-child{grid-column:1/-1;}
+  .comp .g2{grid-template-columns:1fr;}
+  .set-row{grid-template-columns:1fr;}
+  .fee-grid{grid-template-columns:1fr 1fr;}
+  .plan{grid-template-columns:1fr;}
+  .tab{padding:6px 9px;font-size:.88rem;}
+}
+
+@media print{
+  @page{size:A4;margin:14mm 12mm;}
+  body{background:#fff;padding-top:0 !important;font-size:11.5pt;}
+  body > *:not(#printReport):not(#pdfWatermark){display:none !important;}
+  #printReport{display:block !important;position:relative;z-index:1;}
+  #pdfWatermark{display:flex !important;position:fixed;inset:0;align-items:center;justify-content:center;z-index:0;pointer-events:none;}
+  #pdfWatermark.off{display:none !important;}
+  #pdfWatermark img{width:42%;min-width:200px;max-width:380px;opacity:.1;}
+  #printReport h1{font-size:18pt;color:#13293d;margin:0 0 4px;}
+  #printReport h2{font-size:13.5pt;color:#13293d;border-bottom:2px solid #e4572e;padding-bottom:3px;margin:18px 0 8px;break-after:avoid;}
+  #printReport .meta{color:#555;font-size:9.5pt;margin-bottom:10px;}
+  #printReport table{width:100%;border-collapse:collapse;font-size:9.5pt;}
+  #printReport th,#printReport td{border:1px solid #ccd3db;padding:3px 6px;text-align:left;vertical-align:top;}
+  #printReport th{background:#f0f3f6;}
+  #printReport tr{break-inside:avoid;}
+  #printReport .blk{break-inside:avoid;margin-bottom:8px;}
+  #printReport ul,#printReport ol{margin:2px 0 6px;padding-left:20px;}
+  #printReport svg{max-width:100%;height:auto;}
+  #printReport .foot{margin-top:18px;font-size:8.5pt;color:#777;border-top:1px solid #ccc;padding-top:6px;}
+}
+</style>
+</head>
+<body>
+<div id="marqueeBar"><div id="marqueeTrack"></div></div>
+
+<header>
+  <div class="hwrap">
+    <div>
+      <h1>AI 電商<span>競品分析系統</span></h1>
+      <p>輸入你的商品與競爭品牌 → 分析價格帶與商品特色 → 整理競品優缺點 → 產出產品定位與銷售策略。免金鑰即可用規則式分析，填入自己的 AI 金鑰可再深化。</p>
+    </div>
+    <div class="hbtns">
+      <a class="hbtn" href="manual.html" target="_blank" rel="noopener">📖 操作手冊</a>
+      <button class="hbtn" id="historyBtn" type="button">🗂 歷史紀錄</button>
+      <button class="hbtn" id="settingsBtn" type="button" aria-expanded="false" aria-controls="settings">⚙ 常用設定</button>
+      <button class="hbtn" type="button" data-install>📲 加入主畫面</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="panel" id="settings" hidden>
+    <h2>⚙ 常用設定 <small>設定只存在你這台裝置的瀏覽器</small></h2>
+    <h3>AI 服務（選填，自備金鑰）</h3>
+    <div class="set-grid">
+      <div class="set-row"><span>服務商</span><select id="aiProvider"></select></div>
+      <div class="set-row"><span>模型</span><div><select id="aiModel"></select><input type="text" id="aiModelCustom" placeholder="輸入模型 ID" style="display:none;margin-top:6px"></div></div>
+      <div class="set-row"><span>API 金鑰</span><div><input type="password" id="aiKey" placeholder="貼上金鑰" autocomplete="off">
+        <div class="key-note">金鑰只存在本機 localStorage，直接從瀏覽器呼叫服務商，不經過任何第三方伺服器。</div></div></div>
+      <div class="set-row"><span>&nbsp;</span><div><button class="btn ghost small" type="button" id="testAiBtn">🔌 測試連線</button> <span id="testAiMsg" class="key-note"></span></div></div>
+    </div>
+    <h3>分析預設值</h3>
+    <div class="set-grid">
+      <div class="set-row"><span>預設銷售平台</span><select id="setPlatform"></select></div>
+      <div class="set-row"><span>平台費率估算（%）<br><small class="key-note">含成交手續費、金流費，依你的實際合約調整</small></span><div class="fee-grid" id="feeGrid"></div></div>
+      <div class="set-row"><span>金額單位</span><input type="text" id="setUnit" maxlength="6" style="max-width:120px" placeholder="元"></div>
+    </div>
+    <h3>顯示</h3>
+    <div class="set-grid">
+      <div class="set-row"><span>字級</span>
+        <div class="seg" id="fsSeg"><button type="button" data-fs="">標準</button><button type="button" data-fs="l">大</button><button type="button" data-fs="xl">特大</button></div></div>
+      <div class="set-row"><span>其他</span><div>
+        <label class="inline"><input type="checkbox" id="setAutoSave"> 分析後自動存入歷史紀錄</label>
+        <label class="inline"><input type="checkbox" id="setMarquee"> 顯示頂部跑馬燈公告</label></div></div>
+    </div>
+    <h3>PDF 報告</h3>
+    <div class="set-grid">
+      <div class="set-row"><span>報告署名</span><input type="text" id="setAuthor" placeholder="例如：王小明／○○電商"></div>
+      <div class="set-row"><span>&nbsp;</span><div><label class="inline"><input type="checkbox" id="setWatermark"> PDF 加浮水印</label></div></div>
+      <div class="set-row"><span>&nbsp;</span><div><button class="btn ghost small" type="button" id="resetSetBtn">↺ 恢復預設設定</button> <button class="btn ghost small" type="button" id="clearLocalBtn">🗑 清除本機資料（設定、歷史、草稿）</button></div></div>
+    </div>
+    <h3>關於本工具</h3>
+    <div class="about-row">
+      <a class="btn ghost small" href="manual.html" target="_blank" rel="noopener" style="text-decoration:none">📖 操作手冊</a>
+      <button class="btn ghost small" type="button" data-open-about>⚠ 使用警語</button>
+      <button class="btn ghost small" type="button" data-open-about="creator">👤 創作者資訊</button>
+      <button class="btn ghost small" type="button" data-install>📲 加入主畫面</button>
+      <span class="key-note" style="display:inline-flex;align-items:center;gap:6px">訪客數 <img src="https://visitor-badge.laobi.icu/badge?page_id=m255525.ecommercecompetitoranalyzer" alt="訪客次數" height="20" loading="lazy"></span>
+    </div>
+  </section>
+
+  <section class="panel" id="historyPanel">
+    <h2>🗂 歷史紀錄 <small>最多保留 30 筆，只存在這台裝置</small></h2>
+    <div class="actions" style="margin-top:0;margin-bottom:8px">
+      <button class="btn ghost small" type="button" id="exportAllBtn">⬇ 匯出全部（JSON）</button>
+      <label class="btn ghost small" style="cursor:pointer">⬆ 匯入 JSON<input type="file" id="importFile" accept=".json,application/json" hidden></label>
+    </div>
+    <div id="historyList"></div>
+  </section>
+
+  <section class="panel">
+    <h2>① 輸入商品與競爭品牌</h2>
+    <div class="samples"><span class="muted">範例（品牌皆為虛構）：</span><span id="sampleChips"></span></div>
+
+    <div class="me-box">
+      <span class="tag">我的商品</span>
+      <div class="form-grid">
+        <div class="field w2"><label for="mName">商品名稱 <em>*</em></label><input type="text" id="mName" placeholder="例如：暖日 316 輕量保溫瓶 600ml"></div>
+        <div class="field"><label for="mCategory">商品類別</label><input type="text" id="mCategory" placeholder="例如：保溫瓶"></div>
+        <div class="field"><label for="mPlatform">主要銷售平台</label><select id="mPlatform"></select></div>
+        <div class="field"><label for="mPrice">售價 <em>*</em></label><input type="number" id="mPrice" min="0" step="1"></div>
+        <div class="field"><label for="mCost">成本（含進貨／包材）</label><input type="number" id="mCost" min="0" step="1"></div>
+        <div class="field"><label for="mRating">目前評分（選填）</label><input type="number" id="mRating" min="0" max="5" step="0.1" placeholder="新品可留空"></div>
+        <div class="field"><label for="mReviews">評論數（選填）</label><input type="number" id="mReviews" min="0" step="1"></div>
+        <div class="field w2"><label for="mTarget">目標客群</label><input type="text" id="mTarget" placeholder="例如：通勤上班族"></div>
+        <div class="field w2"><label for="mPain">顧客痛點</label><input type="text" id="mPain" placeholder="例如：保溫瓶太重、難清洗"></div>
+        <div class="field w4"><label for="mFeatures">商品特色（用逗號或換行分隔）</label><textarea id="mFeatures" placeholder="例如：316不鏽鋼, 輕量 260g, 保溫12小時, 防漏, 可拆好清洗, 一年保固"></textarea></div>
+      </div>
+    </div>
+
+    <h3 style="margin-top:16px">競爭商品／品牌 <small class="muted">（1～8 個；評論摘錄可直接貼上競品頁面的顧客評論，越多越準）</small></h3>
+    <div class="comp-list" id="compList"></div>
+    <div class="actions">
+      <button class="btn ghost small" type="button" id="addCompBtn">＋ 新增競品</button>
+      <button class="btn ai small" type="button" id="aiFillBtn">🤖 只知道品牌名？AI 補齊競品資料</button>
+      <span class="key-note">AI 補齊的數值是推測值，會標示「AI 推測」，請務必自行查核。</span>
+    </div>
+    <div class="actions" style="border-top:1px solid var(--border);padding-top:14px">
+      <button class="btn primary" type="button" id="analyzeBtn">⚡ 開始分析（規則式，免金鑰）</button>
+      <button class="btn ai" type="button" id="aiAnalyzeBtn">✨ AI 深化分析</button>
+      <button class="btn ghost" type="button" id="clearFormBtn">🧹 清空表單</button>
+      <span id="aiStatus"></span>
+    </div>
+  </section>
+
+  <section class="panel" id="result">
+    <div class="pane-head">
+      <h2 style="margin:0" id="resTitle"></h2>
+    </div>
+    <div class="actions" style="margin-top:4px">
+      <button class="btn ink small" type="button" id="pdfBtn">📄 下載 PDF 報告</button>
+      <button class="btn ghost small" type="button" id="copyMdBtn">📋 複製文字報告</button>
+      <button class="btn ghost small" type="button" id="saveBtn">💾 存入歷史</button>
+      <button class="btn ghost small" type="button" id="exportOneBtn">⬇ 匯出 JSON</button>
+    </div>
+    <div class="tabs" id="tabs" style="margin-top:14px"></div>
+    <div id="panes"></div>
+  </section>
+</main>
+
+<footer>
+  <div class="warn-box" id="warnBox">
+    <strong>⚠️ 使用警語</strong>
+    <ul>
+      <li>本工具產生的價格分析、優缺點、定位與銷售策略僅供教學、發想與討論參考，不構成任何經營、投資或法律建議，實際決策請自行查證。</li>
+      <li>分析結果完全依你輸入的資料計算；「AI 補齊競品資料」的價格、評分、評論數與特色是 AI 推測值，可能與實際不符，<b>請以競品實際頁面為準</b>。</li>
+      <li>本工具不會爬取或連線任何電商網站；貼入的評論摘錄請只做內部分析使用，不要公開轉貼他人評論或競品素材。</li>
+      <li>對競品的描述請保持客觀；在廣告或商品頁中直接點名比較競品，可能涉及公平交易法、商標法或平台規範，使用前請先確認。</li>
+      <li>請勿輸入真實個資或公司機密。表單、設定與歷史紀錄只存在你自己瀏覽器的 localStorage，不會上傳到本工具的任何伺服器。</li>
+      <li>填有 API 金鑰時，商品資料會直接從你的瀏覽器送到你選擇的 AI 服務商；金鑰只存在你的瀏覽器，API 費用依你與服務商的方案計算。</li>
+      <li>僅供教學、課程及個人使用，禁止未經授權公開發布、販售或商業化使用。</li>
+    </ul>
+  </div>
+  <div class="creator-box">製作：<strong>Mark Tsai（蔡豐全）</strong>｜<a href="mailto:tsaimark@gmail.com">tsaimark@gmail.com</a>｜<a href="#" data-open-about="creator">創作者資訊</a>｜<a href="manual.html#creator" target="_blank" rel="noopener">完整經歷</a></div>
+  <div style="margin-top:8px"><img src="https://visitor-badge.laobi.icu/badge?page_id=m255525.ecommercecompetitoranalyzer" alt="訪客計數" loading="lazy"></div>
+</footer>
+
+<div class="modal" id="about" role="dialog" aria-modal="true" aria-labelledby="aboutTitle">
+  <div class="card">
+    <h2 id="aboutTitle">ℹ 關於 AI 電商競品分析系統 <button class="x" type="button" id="aboutClose" aria-label="關閉">✕</button></h2>
+    <p class="muted" style="margin:0 0 8px">輸入商品與競品 → 價格、特色、優缺點、定位與銷售策略一次整理。<a href="manual.html" target="_blank" rel="noopener">📖 操作手冊</a></p>
+    <b>⚠ 使用警語</b>
+    <ul id="aboutWarn"></ul>
+    <div class="creator" id="creatorBox">
+      <p style="margin:0"><strong>創作者：Mark Tsai（蔡豐全）</strong></p>
+      <p style="margin:4px 0">勞動力發展署創業顧問（2017 起）、經濟部 SBIR 海選專案評審委員（2019－2024），長期擔任小型企業人力提升計畫顧問與多項政府計畫業師、評審委員；專長銷售數據分析、AI 工具運用、政府補助計畫申請、創業與跨境電商。</p>
+      <p style="margin:0"><a href="manual.html#creator" target="_blank" rel="noopener">完整經歷與證照</a>｜<a href="mailto:tsaimark@gmail.com">tsaimark@gmail.com</a></p>
+    </div>
+    <div class="foot">
+      <span class="key-note" style="display:inline-flex;align-items:center;gap:6px">訪客數 <img src="https://visitor-badge.laobi.icu/badge?page_id=m255525.ecommercecompetitoranalyzer" alt="訪客次數" height="20" loading="lazy"></span>
+      <button class="btn ghost small" type="button" data-install>📲 加入主畫面</button>
+      <button class="btn primary small" type="button" id="aboutOk">我知道了</button>
+    </div>
+  </div>
+</div>
+
+<div id="printReport"></div>
+<div id="pdfWatermark"><img id="wmImg" src="watermark.png" alt=""></div>
+<div class="toast" id="toast" role="status"></div>
+
+<script src="data.js"></script>
+<script>
+(function(){
+'use strict';
+var E = window.ECA;
+var FBYID = {}; E.FEATURES.forEach(function(f){ FBYID[f.id] = f; });
+var $ = function(id){ return document.getElementById(id); };
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function clamp(n,a,b){ return Math.max(a, Math.min(b, n)); }
+function hashString(s){ var h = 5381; for(var i=0;i<s.length;i++){ h = ((h << 5) + h + s.charCodeAt(i)) >>> 0; } return h; }
+function num(v){ var n = parseFloat(v); return isFinite(n) ? n : null; }
+function uniq(a){ var seen = {}; return a.filter(function(x){ if(seen[x]) return false; seen[x] = 1; return true; }); }
+var toastTimer;
+function toast(msg){ var t=$('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(function(){ t.classList.remove('show'); }, 3200); }
+
+/* ================= 設定 ================= */
+var PREFIX = 'ecaStudio.';
+var SET_KEY = PREFIX + 'settings', HIST_KEY = PREFIX + 'history', DRAFT_KEY = PREFIX + 'draft', WARN_KEY = PREFIX + 'warned';
+function defaultFees(){ var o = {}; Object.keys(E.PLATFORMS).forEach(function(k){ o[k] = E.PLATFORMS[k].fee; }); return o; }
+var DEFAULTS = { provider:'claude', model:'', apiKey:'', fs:'', platform:'shopee', fees:defaultFees(), unit:'元', author:'', watermark:true, autoSave:true, marquee:true };
+function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function lsSet(k, v){ try{ localStorage.setItem(k, v); }catch(e){} }
+function lsDel(k){ try{ localStorage.removeItem(k); }catch(e){} }
+var settings = (function(){
+  var s = {}; try{ s = JSON.parse(lsGet(SET_KEY) || '{}') || {}; }catch(e){ s = {}; }
+  var o = JSON.parse(JSON.stringify(DEFAULTS));
+  Object.keys(s).forEach(function(k){ o[k] = s[k]; });
+  o.fees = Object.assign(defaultFees(), s.fees || {});
+  return o;
+})();
+function saveSettings(){ lsSet(SET_KEY, JSON.stringify(settings)); }
+function unit(){ return settings.unit || '元'; }
+function money(n){ if(n == null || !isFinite(n)) return '—'; return Math.round(n).toLocaleString('zh-TW') + ' ' + unit(); }
+function pct(n, sign){ if(n == null || !isFinite(n)) return '—'; var v = Math.round(n * 1000) / 10; return (sign && v > 0 ? '+' : '') + v + '%'; }
+
+/* ================= AI 服務商 ================= */
+var AI_PROVIDERS = {
+  claude:     {label:'Claude（Anthropic）',       defaultModel:'claude-sonnet-5-5'},
+  openai:     {label:'OpenAI',                    defaultModel:'gpt-5-mini'},
+  gemini:     {label:'Gemini（Google AI Studio）', defaultModel:'gemini-3.5-flash'},
+  openrouter: {label:'OpenRouter',                defaultModel:'openai/gpt-4o-mini'}
+};
+var MODEL_OPTIONS = {
+  claude: [
+    {value:'claude-opus-5-5', label:'Claude Opus 5.5（最強）'},
+    {value:'claude-sonnet-5-5', label:'Claude Sonnet 5.5（均衡，推薦）'},
+    {value:'claude-haiku-5-5', label:'Claude Haiku 5.5（快速省錢）'},
+    {value:'claude-fable-5-1', label:'Claude Fable 5.1'}
+  ],
+  openai: [
+    {value:'gpt-5', label:'GPT-5（最強）'},
+    {value:'gpt-5-mini', label:'GPT-5 mini（均衡，推薦）'},
+    {value:'gpt-4o-mini', label:'GPT-4o mini（快速省錢）'}
+  ],
+  gemini: [
+    {value:'gemini-3.5-pro', label:'Gemini 3.5 Pro（最強）'},
+    {value:'gemini-3.5-flash', label:'Gemini 3.5 Flash（均衡，推薦）'},
+    {value:'gemini-2.5-flash', label:'Gemini 2.5 Flash（快速省錢）'}
+  ],
+  openrouter: [
+    {value:'openai/gpt-4o-mini', label:'OpenAI GPT-4o mini（推薦）'},
+    {value:'anthropic/claude-sonnet-4.5', label:'Anthropic Claude Sonnet 4.5'},
+    {value:'google/gemini-2.5-flash', label:'Google Gemini 2.5 Flash'},
+    {value:'meta-llama/llama-3.3-70b-instruct', label:'Meta Llama 3.3 70B'}
+  ]
+};
+function renderModelOptions(provider, presetModel){
+  var opts = MODEL_OPTIONS[provider] || [];
+  var sel = $('aiModel');
+  sel.innerHTML = opts.map(function(o){ return '<option value="' + o.value + '">' + esc(o.label) + '</option>'; }).join('')
+    + '<option value="custom">✏️ 自訂模型名稱…</option>';
+  var matched = presetModel && opts.some(function(o){ return o.value === presetModel; });
+  if(matched){ sel.value = presetModel; $('aiModelCustom').value = ''; }
+  else if(presetModel){ sel.value = 'custom'; $('aiModelCustom').value = presetModel; }
+  else { sel.value = AI_PROVIDERS[provider].defaultModel; $('aiModelCustom').value = ''; }
+  $('aiModelCustom').style.display = sel.value === 'custom' ? 'block' : 'none';
+}
+function persistApiConfig(){
+  settings.provider = $('aiProvider').value;
+  var sel = $('aiModel').value;
+  settings.model = sel === 'custom' ? $('aiModelCustom').value.trim() : sel;
+  settings.apiKey = $('aiKey').value.trim();
+  saveSettings();
+}
+
+async function callLLM(provider, model, apiKey, prompt, onRetry){
+  var url, headers, body, extract;
+  function oaExtract(d){
+    var t = d.choices && d.choices[0] && d.choices[0].message && d.choices[0].message.content;
+    if(!t) throw new Error('回應中沒有文字內容');
+    return t;
+  }
+  if(provider === 'claude'){
+    url = 'https://api.anthropic.com/v1/messages';
+    headers = {'content-type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'};
+    body = {model: model, max_tokens: 8000, messages: [{role:'user', content: prompt}]};
+    extract = function(d){
+      if(d.stop_reason === 'refusal') throw new Error('模型拒絕了這個請求（refusal）');
+      var t = (d.content || []).filter(function(b){ return b.type === 'text'; }).map(function(b){ return b.text; }).join('');
+      if(!t) throw new Error('回應中沒有文字內容');
+      return t;
+    };
+  } else if(provider === 'openai'){
+    url = 'https://api.openai.com/v1/chat/completions';
+    headers = {'content-type':'application/json','authorization':'Bearer ' + apiKey};
+    body = {model: model, messages: [{role:'user', content: prompt}]};
+    extract = oaExtract;
+  } else if(provider === 'gemini'){
+    url = 'https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) + ':generateContent';
+    headers = {'content-type':'application/json','x-goog-api-key':apiKey};
+    body = {contents: [{parts: [{text: prompt}]}]};
+    extract = function(d){
+      var parts = (d.candidates && d.candidates[0] && d.candidates[0].content && d.candidates[0].content.parts) || [];
+      var t = parts.map(function(p){ return p.text || ''; }).join('');
+      if(!t) throw new Error('回應中沒有文字內容');
+      return t;
+    };
+  } else if(provider === 'openrouter'){
+    url = 'https://openrouter.ai/api/v1/chat/completions';
+    headers = {'content-type':'application/json','authorization':'Bearer ' + apiKey};
+    body = {model: model, messages: [{role:'user', content: prompt}]};
+    extract = oaExtract;
+  } else {
+    throw new Error('不支援的服務商');
+  }
+  var RETRYABLE = {429:1, 500:1, 503:1, 529:1};
+  var MAX_TRIES = 3;
+  for(var attempt = 1; attempt <= MAX_TRIES; attempt++){
+    var resp = await fetch(url, {method:'POST', headers:headers, body:JSON.stringify(body), signal: AbortSignal.timeout(180000)});
+    var raw = await resp.text();
+    if(resp.ok) return extract(JSON.parse(raw));
+    var msg = raw.slice(0, 300);
+    try{ var err = JSON.parse(raw); msg = (err.error && err.error.message) || err.message || msg; }catch(e){}
+    if(RETRYABLE[resp.status] && attempt < MAX_TRIES){
+      var waitSec = attempt * 8;
+      if(onRetry) onRetry(attempt, resp.status, waitSec);
+      await new Promise(function(r){ setTimeout(r, waitSec * 1000); });
+      continue;
+    }
+    if(resp.status === 401 || resp.status === 403) msg += '——通常是 API 金鑰不正確、已失效，或金鑰與服務商不對應';
+    if(resp.status === 404) msg += '——通常是模型名稱錯誤或已停用';
+    if(RETRYABLE[resp.status]) msg += '——已自動重試 ' + (MAX_TRIES - 1) + ' 次仍失敗，請稍候再試或更換模型';
+    throw new Error('API 回應 ' + resp.status + '：' + msg);
+  }
+}
+function extractJsonObject(text){
+  var cleaned = text.replace(/```json|```/g, '');
+  var start = cleaned.indexOf('{'), end = cleaned.lastIndexOf('}');
+  if(start < 0 || end <= start) throw new Error('模型輸出中找不到 JSON 物件：' + text.slice(0, 120));
+  return JSON.parse(cleaned.slice(start, end + 1));
+}
+
+/* ================= 輸入 ================= */
+var ME_IDS = {name:'mName', category:'mCategory', platform:'mPlatform', price:'mPrice', cost:'mCost', rating:'mRating', reviews:'mReviews', target:'mTarget', pain:'mPain', features:'mFeatures'};
+var MAX_COMPS = 8;
+var comps = [];
+function blankComp(){ return {name:'', price:'', rating:'', reviews:'', features:'', reviewsText:'', ai:{}}; }
+
+function renderComps(){
+  var html = comps.map(function(c, i){
+    var ai = c.ai || {};
+    function b(k){ return ai[k] ? ' <span class="aibadge">AI 推測</span>' : ''; }
+    return '<div class="comp" data-i="' + i + '">'
+      + '<div class="ch"><b>競品 ' + (i + 1) + '</b>' + (Object.keys(ai).length ? '<span class="aibadge">含 AI 推測值，請查核</span>' : '')
+      + '<button class="del" type="button" data-del="' + i + '" title="刪除這個競品" aria-label="刪除競品 ' + (i + 1) + '">✕</button></div>'
+      + '<div class="g">'
+      + '<div class="field"><label>品牌／商品名 <em>*</em></label><input type="text" data-k="name" value="' + esc(c.name) + '" placeholder="例如：山嵐保溫杯 500ml"></div>'
+      + '<div class="field"><label>售價' + b('price') + '</label><input type="number" min="0" data-k="price" value="' + esc(c.price) + '"></div>'
+      + '<div class="field"><label>評分' + b('rating') + '</label><input type="number" min="0" max="5" step="0.1" data-k="rating" value="' + esc(c.rating) + '"></div>'
+      + '<div class="field"><label>評論數' + b('reviews') + '</label><input type="number" min="0" data-k="reviews" value="' + esc(c.reviews) + '"></div>'
+      + '</div><div class="g2">'
+      + '<div class="field"><label>商品特色' + b('features') + '</label><textarea data-k="features" placeholder="逗號或換行分隔">' + esc(c.features) + '</textarea></div>'
+      + '<div class="field"><label>評論摘錄' + b('reviewsText') + '</label><textarea data-k="reviewsText" placeholder="貼上顧客評論（好評、負評都貼）">' + esc(c.reviewsText) + '</textarea></div>'
+      + '</div></div>';
+  }).join('');
+  $('compList').innerHTML = html;
+  $('addCompBtn').disabled = comps.length >= MAX_COMPS;
+}
+function readInput(){
+  var me = {};
+  Object.keys(ME_IDS).forEach(function(k){ me[k] = $(ME_IDS[k]).value.trim(); });
+  return {me: me, comps: comps.map(function(c){ return {name:String(c.name).trim(), price:c.price, rating:c.rating, reviews:c.reviews, features:c.features, reviewsText:c.reviewsText, ai:c.ai || {}}; })};
+}
+function writeInput(inp){
+  inp = inp || {};
+  var me = inp.me || {};
+  Object.keys(ME_IDS).forEach(function(k){
+    var el = $(ME_IDS[k]);
+    if(k === 'platform') el.value = me.platform && E.PLATFORMS[me.platform] ? me.platform : settings.platform;
+    else el.value = me[k] != null ? me[k] : '';
+  });
+  comps = (inp.comps && inp.comps.length ? inp.comps : [blankComp(), blankComp()]).map(function(c){
+    return {name:c.name || '', price:c.price == null ? '' : c.price, rating:c.rating == null ? '' : c.rating, reviews:c.reviews == null ? '' : c.reviews,
+      features:c.features || '', reviewsText:c.reviewsText || '', ai:c.ai || {}};
+  });
+  renderComps();
+}
+var draftTimer;
+function saveDraft(){ clearTimeout(draftTimer); draftTimer = setTimeout(function(){ lsSet(DRAFT_KEY, JSON.stringify(readInput())); }, 400); }
+
+/* ================= 規則式引擎 ================= */
+function splitFeatures(text){
+  return String(text || '').split(/[,，、;；\/\n]+/).map(function(s){ return s.trim(); }).filter(function(s){ return s.length > 0 && s.length <= 40; });
+}
+function detectFeatures(text){
+  var ids = [];
+  E.FEATURES.forEach(function(f){ if(f.kw.some(function(w){ return text.indexOf(w) >= 0; })) ids.push(f.id); });
+  return ids;
+}
+function customTokens(text){
+  return splitFeatures(text).filter(function(tok){ return !E.FEATURES.some(function(f){ return f.kw.some(function(w){ return tok.indexOf(w) >= 0; }); }); });
+}
+function hasNegatorBefore(s, i){ var pre = s.slice(Math.max(0, i - 2), i); return /[不沒無]/.test(pre); }
+function polarity(s){
+  var score = 0;
+  E.NEG.forEach(function(w){
+    var i = s.indexOf(w);
+    while(i >= 0){ score += hasNegatorBefore(s, i) && w.charAt(0) !== '不' ? 1 : -1; i = s.indexOf(w, i + w.length); }
+  });
+  E.POS.forEach(function(w){
+    var i = s.indexOf(w);
+    while(i >= 0){
+      var overlapNeg = E.NEG.some(function(n){ var j = s.indexOf(n); return j >= 0 && i >= j && i < j + n.length; });
+      if(!overlapNeg) score += hasNegatorBefore(s, i) ? -1 : 1;
+      i = s.indexOf(w, i + w.length);
+    }
+  });
+  if(score === 0 && /沒有|沒/.test(s)) score = -1;
+  return score;
+}
+function aspectOf(s){
+  var best = null, bestPos = 1e9;
+  E.ASPECTS.forEach(function(a){ a.kw.forEach(function(w){ var i = s.indexOf(w); if(i >= 0 && i < bestPos){ bestPos = i; best = a; } }); });
+  return best || {id:'overall', label:'整體'};
+}
+function analyzeReviews(text){
+  var out = {pros:[], cons:[], aspectsNeg:{}};
+  String(text || '').split(/[。！!？?\n；;，,]+/).forEach(function(raw){
+    var s = raw.trim(); if(s.length < 2) return;
+    var p = polarity(s); if(!p) return;
+    var a = aspectOf(s);
+    var phrase = '【' + a.label + '】' + (s.length > 26 ? s.slice(0, 25) + '…' : s);
+    if(p > 0) out.pros.push(phrase);
+    else { out.cons.push(phrase); out.aspectsNeg[a.label] = (out.aspectsNeg[a.label] || 0) + 1; }
+  });
+  out.pros = uniq(out.pros); out.cons = uniq(out.cons);
+  return out;
+}
+function quantile(sorted, q){
+  if(!sorted.length) return null;
+  var pos = (sorted.length - 1) * q, lo = Math.floor(pos), hi = Math.ceil(pos);
+  return sorted[lo] + (sorted[hi] - sorted[lo]) * (pos - lo);
+}
+function roundPrice(n){ if(n == null) return null; return n >= 100 ? Math.round(n / 10) * 10 : Math.round(n); }
+
+function analyze(inp){
+  var me = inp.me;
+  var catText = [me.category, me.name, me.features].join(' ');
+  var catKey = E.classify(catText);
+  var noun = me.category || E.CATEGORIES[catKey].noun;
+  var platform = E.PLATFORMS[me.platform] ? me.platform : 'other';
+  var feeRate = (num(settings.fees[platform]) != null ? num(settings.fees[platform]) : E.PLATFORMS[platform].fee) / 100;
+
+  var products = [{name: me.name, isMe: true, price: num(me.price), cost: num(me.cost), rating: num(me.rating), reviews: num(me.reviews), featuresText: me.features, reviewsText: '', ai:{}}]
+    .concat(inp.comps.filter(function(c){ return c.name; }).map(function(c){
+      return {name: c.name, isMe: false, price: num(c.price), rating: num(c.rating), reviews: num(c.reviews), featuresText: c.features || '', reviewsText: c.reviewsText || '', ai: c.ai || {}};
+    }));
+  products.forEach(function(p){
+    var t = p.featuresText + ' ' + p.name;
+    p.feats = detectFeatures(t);
+    p.custom = customTokens(p.featuresText);
+    p.rev = analyzeReviews(p.reviewsText);
+  });
+  var compsP = products.filter(function(p){ return !p.isMe; });
+  var meP = products[0];
+
+  /* --- 價格 --- */
+  var priced = products.filter(function(p){ return p.price != null && p.price > 0; });
+  var prices = priced.map(function(p){ return p.price; }).sort(function(a,b){ return a - b; });
+  var compPrices = compsP.filter(function(p){ return p.price > 0; }).map(function(p){ return p.price; });
+  var avgComp = compPrices.length ? compPrices.reduce(function(a,b){ return a + b; }, 0) / compPrices.length : null;
+  var price = {min: prices[0], max: prices[prices.length - 1], median: quantile(prices, .5), p25: quantile(prices, .25), p75: quantile(prices, .75),
+    avg: prices.length ? prices.reduce(function(a,b){ return a + b; }, 0) / prices.length : null, avgComp: avgComp, feeRate: feeRate};
+  var span = (price.max - price.min) || 1;
+  function band(p){ if(p == null) return '—'; var r = (p - price.min) / span; return r < 1/3 ? '低價帶' : r < 2/3 ? '中價帶' : '高價帶'; }
+  products.forEach(function(p){ p.band = band(p.price); p.gap = (p.price != null && avgComp) ? (p.price - avgComp) / avgComp : null; });
+  var sortedByPrice = priced.slice().sort(function(a,b){ return a.price - b.price; });
+  price.meRank = meP.price != null ? sortedByPrice.indexOf(meP) + 1 : null;
+  price.count = priced.length;
+  if(meP.price){
+    var feeAmt = meP.price * feeRate;
+    price.feeAmt = feeAmt;
+    price.profit = meP.cost != null ? meP.price - feeAmt - meP.cost : null;
+    price.margin = price.profit != null ? price.profit / meP.price : null;
+  }
+
+  /* --- 特色矩陣 --- */
+  var ids = [];
+  products.forEach(function(p){ p.feats.forEach(function(id){ if(ids.indexOf(id) < 0) ids.push(id); }); });
+  var rows = ids.map(function(id){
+    var has = products.map(function(p){ return p.feats.indexOf(id) >= 0; });
+    var compHas = compsP.filter(function(p){ return p.feats.indexOf(id) >= 0; }).length;
+    return {id:id, label:FBYID[id].label, dim:FBYID[id].dim, has:has, compShare: compsP.length ? compHas / compsP.length : 0, compHas: compHas};
+  }).sort(function(a,b){ return E.DIMS.indexOf(a.dim) - E.DIMS.indexOf(b.dim) || b.compShare - a.compShare; });
+  var common = rows.filter(function(r){ return compsP.length >= 2 ? r.compShare >= .6 : r.compShare >= 1; });
+  var unique = rows.filter(function(r){ return r.has[0] && r.compHas === 0; });
+  var gaps = rows.filter(function(r){ return !r.has[0] && r.compShare >= .5; });
+  var matrix = {rows: rows, common: common.map(function(r){ return r.label; }), unique: unique.map(function(r){ return r.label; }), gaps: gaps.map(function(r){ return r.label; }),
+    meCommon: common.filter(function(r){ return r.has[0]; }).map(function(r){ return r.label; })};
+  var dimCount = {};
+  products.forEach(function(p, i){ dimCount[i] = {}; p.feats.forEach(function(id){ var d = FBYID[id].dim; dimCount[i][d] = (dimCount[i][d] || 0) + 1; }); });
+
+  /* --- 價值分數 --- */
+  var ratings = compsP.filter(function(p){ return p.rating > 0; }).map(function(p){ return p.rating; }).sort(function(a,b){ return a - b; });
+  var medRating = quantile(ratings, .5);
+  var maxCnt = Math.max.apply(null, products.map(function(p){ return p.feats.length + p.custom.length * .5; }).concat([1]));
+  products.forEach(function(p){
+    var f = (p.feats.length + p.custom.length * .5) / maxCnt;
+    var r = p.rating != null && p.rating > 0 ? clamp((p.rating - 3.5) / 1.5, 0, 1) : (medRating != null ? clamp((medRating - 3.5) / 1.5, 0, 1) : .5);
+    var t = p.reviews != null ? clamp(Math.log10(p.reviews + 1) / 4, 0, 1) : .3;
+    p.value = Math.round(100 * (.55 * f + .3 * r + .15 * t));
+  });
+
+  /* --- 優缺點 --- */
+  var maxReviews = Math.max.apply(null, compsP.map(function(p){ return p.reviews || 0; }).concat([0]));
+  var commonIds = common.map(function(r){ return r.id; });
+  var proscons = products.map(function(p){
+    var pros = [], cons = [];
+    var own = rows.filter(function(r){ return p.feats.indexOf(r.id) >= 0; });
+    var uniq1 = own.filter(function(r){ var others = products.filter(function(q){ return q !== p && q.feats.indexOf(r.id) >= 0; }).length; return others === 0; });
+    if(uniq1.length) pros.push('獨有特色：' + uniq1.slice(0, 3).map(function(r){ return r.label; }).join('、'));
+    if(p.feats.length + p.custom.length >= 5) pros.push('特色完整（' + (p.feats.length + p.custom.length) + ' 項）');
+    if(p.price != null && p.price === price.min && priced.length > 1) pros.push('同組最低價，價格門檻最低');
+    if(p.price != null && p.price === price.max && priced.length > 1) cons.push('同組最高價，購買門檻高');
+    if(p.rating != null && p.rating >= 4.7) pros.push('評分 ' + p.rating + '，口碑佳');
+    if(p.rating != null && p.rating > 0 && p.rating < 4.3) cons.push('評分 ' + p.rating + '，品質或體驗有疑慮');
+    if(p.reviews != null && p.reviews >= 1000) pros.push('評論 ' + p.reviews.toLocaleString() + ' 則，市場已驗證');
+    if(p.reviews != null && p.reviews < 100) cons.push('評論僅 ' + p.reviews + ' 則，信任度待建立');
+    if(p.isMe && p.reviews == null) cons.push('尚無評論數據，新品需先累積口碑');
+    var miss = commonIds.filter(function(id){ return p.feats.indexOf(id) < 0; }).map(function(id){ return FBYID[id].label; });
+    if(miss.length) cons.push('缺少多數競品具備的：' + miss.slice(0, 3).join('、'));
+    pros = pros.concat(p.rev.pros.slice(0, 4)); cons = cons.concat(p.rev.cons.slice(0, 4));
+    if(!pros.length) pros.push('資料不足，請補充特色或評論摘錄');
+    if(!cons.length) cons.push('未發現明顯缺點（評論摘錄越多，分析越準）');
+    return {name: p.name, isMe: p.isMe, pros: uniq(pros).slice(0, 7), cons: uniq(cons).slice(0, 7)};
+  });
+  var painAgg = {};
+  compsP.forEach(function(p){ Object.keys(p.rev.aspectsNeg).forEach(function(a){ painAgg[a] = (painAgg[a] || 0) + 1; }); });
+  var compPains = Object.keys(painAgg).sort(function(a,b){ return painAgg[b] - painAgg[a]; }).map(function(a){
+    var ex = []; compsP.forEach(function(p){ p.rev.cons.forEach(function(c){ if(c.indexOf('【' + a + '】') === 0 && ex.length < 2) ex.push(p.name + '：' + c.replace(/^【[^】]+】/, '')); }); });
+    return {aspect: a, n: painAgg[a], examples: ex};
+  });
+
+  /* --- 定位 --- */
+  var values = products.map(function(p){ return p.value; }).sort(function(a,b){ return a - b; });
+  var medValue = quantile(values, .5);
+  var medPrice = price.median;
+  function quadOf(p){
+    if(p.price == null) return null;
+    var hiP = p.price >= medPrice, hiV = p.value >= medValue;
+    return hiP && hiV ? 'premium' : !hiP && hiV ? 'value' : !hiP ? 'budget' : 'overpriced';
+  }
+  products.forEach(function(p){ p.quad = quadOf(p); });
+  var quad = meP.quad || 'value';
+  var Q = E.QUADRANTS[quad];
+  var qCount = {premium:0, value:0, budget:0, overpriced:0};
+  compsP.forEach(function(p){ if(p.quad) qCount[p.quad]++; });
+  var opportunity;
+  if(qCount.value === 0 && quad !== 'value') opportunity = '「低價高值（CP 值型）」區目前沒有競品，是值得評估的空白市場：若能控制成本，把價格壓在中位數以下、同時保留差異特色，就能搶到比價型顧客。';
+  else if(qCount.premium === 0 && quad !== 'premium') opportunity = '「高價高值（精品型）」區目前沒有競品，若能補強認證、保固與設計感，可以往上做出品牌溢價。';
+  else if(qCount[quad] >= 2) opportunity = '你所在的「' + Q.label + '」已有 ' + qCount[quad] + ' 個競品，競爭激烈，必須靠差異點（' + (matrix.unique.slice(0, 2).join('、') || '尚未找到明確差異點') + '）拉開距離。';
+  else opportunity = '你所在的「' + Q.label + '」競爭者不多，重點是讓顧客快速理解你的差異點並累積評論。';
+  var leader = compsP.slice().sort(function(a,b){ return (b.reviews || 0) - (a.reviews || 0); })[0];
+  var diffs = matrix.unique.length ? matrix.unique : matrix.meCommon;
+  var target = me.target || '目標顧客';
+  var vsText = leader ? '相較於' + leader.name + '，' + (meP.price != null && leader.price != null ? (meP.price < leader.price ? '我們價格更實惠（便宜 ' + money(leader.price - meP.price) + '）' : meP.price > leader.price ? '我們提供更多價值來支撐 ' + money(meP.price - leader.price) + ' 的價差' : '在相同價位提供更多特色') : '我們更聚焦在差異化特色') : '';
+  var statement = '對於' + target + (me.pain ? '（困擾：' + me.pain + '）' : '') + '，' + (me.name || '我們的商品') + '是一款' + noun + '，以「' + (diffs.slice(0, 3).join('、') || '核心特色') + '」為主要價值，' + Q.statement + '。' + vsText + (vsText ? '。' : '');
+
+  /* --- 策略 --- */
+  var floor = null;
+  if(meP.cost != null && meP.cost > 0) floor = meP.cost / Math.max(.2, 1 - feeRate - .15);
+  var lo, hi;
+  if(quad === 'premium'){ lo = price.p75; hi = Math.max(price.max, price.p75) * 1.05; }
+  else if(quad === 'value'){ lo = medPrice * .85; hi = medPrice * .97; }
+  else if(quad === 'budget'){ lo = price.min * .95; hi = Math.max(price.p25, price.min); }
+  else { lo = medPrice * .95; hi = price.p75; }
+  var floorApplied = false;
+  if(floor != null && lo < floor){ lo = floor; floorApplied = true; }
+  if(hi < lo) hi = lo * 1.08;
+  var priceRange = [roundPrice(lo), roundPrice(hi)];
+
+  var d1 = diffs[0] || '核心特色', d2 = diffs[1] || matrix.meCommon[0] || '貼心設計';
+  var h = hashString(me.name + '|' + noun);
+  var copies = [];
+  for(var k = 0; k < 3; k++){
+    var tpl = E.COPY_TPL[(h + k * 2) % E.COPY_TPL.length];
+    copies.push(tpl.replace(/{{d1}}/g, d1).replace(/{{d2}}/g, d2).replace(/{{target}}/g, me.target || '你').replace(/{{noun}}/g, noun)
+      .replace(/{{product}}/g, me.name || '我們').replace(/{{common}}/g, matrix.meCommon[0] || '基本功能').replace(/{{pain}}/g, me.pain || '常見困擾'));
+  }
+  copies = uniq(copies);
+  var kw = [noun + ' 推薦', noun + ' 評價', noun + ' CP值', noun + ' 比較'];
+  diffs.slice(0, 3).forEach(function(d){ kw.push(d + ' ' + noun); });
+  if(me.target) kw.push(noun + ' ' + me.target.split(/[、與和及\s]/)[0]);
+  if(matrix.unique.indexOf('禮盒包裝') >= 0 || ids.indexOf('gift') >= 0) kw.push(noun + ' 送禮');
+  var PAIN_KW = {'尺寸重量':'輕量','清潔':'好清洗','品質':'耐用','密封':'防漏','價格':'CP值','出貨物流':'快速出貨','舒適度':'舒適','連線穩定':'穩定連線','客服售後':'保固','外觀':'質感'};
+  compPains.filter(function(p){ return PAIN_KW[p.aspect]; }).slice(0, 2).forEach(function(p){ kw.push(PAIN_KW[p.aspect] + ' ' + noun); });
+  kw = uniq(kw).slice(0, 10);
+
+  var attack = compPains.filter(function(p){ return p.aspect !== '整體'; }).slice(0, 4).map(function(p){
+    var ex = p.examples[0] ? '，例：' + p.examples[0].split('：').slice(1).join('：') : '';
+    return '競品常被抱怨「' + p.aspect + '」（' + p.n + ' 家' + ex + '）→ 在主圖與文案中明確說明你在「' + p.aspect + '」的表現或保證';
+  });
+  var plan = [
+    {week:'第 1 週｜商品頁重整', tasks: ['主圖第一張放最大差異點：' + d1, '加入「我們 vs 一般' + noun + '」規格比較表（不點名競品）']
+      .concat(matrix.gaps.length ? ['補強或說明缺口特色：' + matrix.gaps.slice(0, 3).join('、')] : ['檢查所有基本要求特色都有寫進商品頁'])},
+    {week:'第 2 週｜價格與促銷', tasks: ['售價調整至建議區間 ' + money(priceRange[0]) + '～' + money(priceRange[1]), Q.promos[0], Q.promos[1]]},
+    {week:'第 3 週｜評論與內容', tasks: Q.reviewOps.concat(compPains.length ? ['製作一篇針對「' + compPains[0].aspect + '」的使用心得或實測內容'] : [])},
+    {week:'第 4 週｜廣告與檢討', tasks: ['以「' + kw.slice(0, 3).join('」「') + '」等關鍵字開小額廣告測試', '追蹤轉換率、毛利與退貨率，和第 1 週比較', '更新競品價格與評論，重跑本分析']}
+  ];
+  var strategy = {quad: quad, quadLabel: Q.label, pricing: Q.pricing, priceRange: priceRange, floor: floor, floorApplied: floorApplied,
+    copies: copies, promos: Q.promos.slice(), reviewOps: Q.reviewOps.slice(), keywords: kw, platformTips: E.PLATFORMS[platform].tips.slice(),
+    attack: attack, plan: plan, risk: Q.risk};
+
+  /* --- 摘要 --- */
+  var summary = '本次比較 ' + compsP.length + ' 個競品。' +
+    (meP.price != null && avgComp ? '你的售價 ' + money(meP.price) + '，' + (meP.gap >= 0 ? '比競品均價高 ' : '比競品均價低 ') + pct(Math.abs(meP.gap)) + '，位於' + meP.band + '。' : '') +
+    '你有 ' + matrix.unique.length + ' 項獨有差異點' + (matrix.unique.length ? '（' + matrix.unique.slice(0, 3).join('、') + '）' : '') + '，' +
+    (matrix.gaps.length ? '缺少 ' + matrix.gaps.length + ' 項多數競品具備的特色（' + matrix.gaps.slice(0, 3).join('、') + '）。' : '市場基本要求的特色你都具備。') +
+    '目前定位為「' + Q.label + '」，建議售價區間 ' + money(priceRange[0]) + '～' + money(priceRange[1]) + '。';
+
+  return {ts: Date.now(), catKey: catKey, catLabel: E.CATEGORIES[catKey].label, noun: noun, platform: platform, platformLabel: E.PLATFORMS[platform].label,
+    products: products, price: price, matrix: matrix, dimCount: dimCount, proscons: proscons, compPains: compPains,
+    positioning: {quad: quad, medPrice: medPrice, medValue: medValue, statement: statement, opportunity: opportunity, qCount: qCount},
+    strategy: strategy, summary: summary, src: {}};
+}
+
+/* ================= 狀態 ================= */
+var state = {input: null, result: null, aiPatch: null, histId: null};
+function applyAiPatch(res, patch){
+  if(!patch) return res;
+  res.src = {};
+  if(patch.summary){ res.summary = patch.summary; res.src.summary = 'ai'; }
+  if(patch.proscons){
+    patch.proscons.forEach(function(pc){
+      var t = res.proscons.filter(function(x){ return x.name === pc.name; })[0];
+      if(t){ t.pros = pc.pros; t.cons = pc.cons; t.ai = true; }
+    });
+    res.src.proscons = 'ai';
+  }
+  if(patch.statement){ res.positioning.statement = patch.statement; res.src.statement = 'ai'; }
+  if(patch.opportunity){ res.positioning.opportunity = patch.opportunity; res.src.opportunity = 'ai'; }
+  ['pricing','copies','promos','reviewOps','keywords','attack','plan','risk'].forEach(function(k){
+    if(patch[k] != null){ res.strategy[k] = patch[k]; res.src[k] = 'ai'; }
+  });
+  return res;
+}
+function runAnalysis(opts){
+  opts = opts || {};
+  var inp = readInput();
+  if(!inp.me.name){ toast('請先填寫「我的商品」名稱'); $('mName').focus(); return false; }
+  if(num(inp.me.price) == null || num(inp.me.price) <= 0){ toast('請填寫我的商品售價'); $('mPrice').focus(); return false; }
+  var valid = inp.comps.filter(function(c){ return c.name; });
+  if(!valid.length){ toast('請至少填一個競品名稱'); return false; }
+  if(!valid.some(function(c){ return num(c.price) > 0; })){ toast('至少要有一個競品填了售價（或先用 AI 補齊）'); return false; }
+  state.input = inp;
+  if(!opts.keepAi) state.aiPatch = null;
+  state.result = applyAiPatch(analyze(inp), state.aiPatch);
+  renderResult();
+  if(!opts.silent){ $('result').scrollIntoView({behavior:'smooth', block:'start'}); }
+  if(settings.autoSave && !opts.noSave) saveHistory(true);
+  return true;
+}
+
+/* ================= 繪圖 ================= */
+function priceLadderSvg(res){
+  var ps = res.products.filter(function(p){ return p.price > 0; });
+  if(!ps.length) return '';
+  var W = 760, H = 70 + ps.length * 30, L = 40, R = 40;
+  var min = res.price.min, max = res.price.max, sp = (max - min) || 1;
+  function x(v){ return L + (v - min) / sp * (W - L - R); }
+  var s = '<svg class="chart" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="價格梯">';
+  var bw = (W - L - R) / 3;
+  ['低價帶','中價帶','高價帶'].forEach(function(b, i){
+    s += '<rect x="' + (L + i * bw) + '" y="20" width="' + bw + '" height="' + (H - 50) + '" fill="' + ['#e8f7f1','#f4f6f8','#fdeef0'][i] + '"/>';
+    s += '<text x="' + (L + i * bw + bw / 2) + '" y="14" font-size="12" text-anchor="middle" fill="#5f6b7a">' + b + '</text>';
+  });
+  if(res.price.avgComp){ var ax = x(res.price.avgComp); s += '<line x1="' + ax + '" x2="' + ax + '" y1="20" y2="' + (H - 30) + '" stroke="#24476b" stroke-dasharray="4 4"/><text x="' + ax + '" y="' + (H - 16) + '" font-size="11" text-anchor="middle" fill="#24476b">競品均價 ' + esc(money(res.price.avgComp)) + '</text>'; }
+  ps.slice().sort(function(a,b){ return a.price - b.price; }).forEach(function(p, i){
+    var y = 40 + i * 30, cx = x(p.price), col = p.isMe ? '#e4572e' : '#24476b';
+    var anchor = cx > W * .6 ? 'end' : 'start', tx = cx + (anchor === 'end' ? -10 : 10);
+    s += '<circle cx="' + cx + '" cy="' + y + '" r="' + (p.isMe ? 8 : 6) + '" fill="' + col + '"/>';
+    s += '<text x="' + tx + '" y="' + (y + 4) + '" font-size="12" text-anchor="' + anchor + '" fill="' + col + '" font-weight="' + (p.isMe ? 700 : 400) + '">' + esc((p.isMe ? '★ ' : '') + shortName(p.name) + '　' + money(p.price)) + '</text>';
+  });
+  return s + '</svg>';
+}
+function shortName(n){ n = String(n || ''); return n.length > 14 ? n.slice(0, 13) + '…' : n; }
+function positionSvg(res){
+  var ps = res.products.filter(function(p){ return p.price > 0; });
+  var W = 640, H = 420, L = 60, R = 20, T = 20, B = 50;
+  var minP = res.price.min, maxP = res.price.max, padP = ((maxP - minP) || maxP || 1) * .12;
+  var x0 = Math.max(0, minP - padP), x1 = maxP + padP;
+  function x(v){ return L + (v - x0) / ((x1 - x0) || 1) * (W - L - R); }
+  var vs = ps.map(function(p){ return p.value; }).concat([res.positioning.medValue]);
+  var y0 = Math.max(0, Math.min.apply(null, vs) - 12), y1 = Math.min(100, Math.max.apply(null, vs) + 12);
+  function y(v){ return T + (1 - (v - y0) / ((y1 - y0) || 1)) * (H - T - B); }
+  var mx = x(res.positioning.medPrice), my = y(res.positioning.medValue);
+  var s = '<svg class="chart" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="產品定位圖">';
+  var Qs = E.QUADRANTS;
+  [['value', L, T, mx - L, my - T], ['premium', mx, T, W - R - mx, my - T], ['budget', L, my, mx - L, H - B - my], ['overpriced', mx, my, W - R - mx, H - B - my]].forEach(function(q){
+    s += '<rect x="' + q[1] + '" y="' + q[2] + '" width="' + Math.max(0, q[3]) + '" height="' + Math.max(0, q[4]) + '" fill="' + Qs[q[0]].color + '" opacity=".08"/>';
+    var lx = q[0] === 'value' || q[0] === 'budget' ? q[1] + 8 : q[1] + q[3] - 8, anchor = q[0] === 'value' || q[0] === 'budget' ? 'start' : 'end';
+    var ly = q[0] === 'value' || q[0] === 'premium' ? q[2] + 16 : q[2] + q[4] - 8;
+    s += '<text x="' + lx + '" y="' + ly + '" font-size="12" font-weight="700" text-anchor="' + anchor + '" fill="' + Qs[q[0]].color + '">' + Qs[q[0]].label + '</text>';
+  });
+  s += '<line x1="' + mx + '" x2="' + mx + '" y1="' + T + '" y2="' + (H - B) + '" stroke="#9aa6b2" stroke-dasharray="4 4"/>';
+  s += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + my + '" y2="' + my + '" stroke="#9aa6b2" stroke-dasharray="4 4"/>';
+  s += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + (H - B) + '" y2="' + (H - B) + '" stroke="#5f6b7a"/><line x1="' + L + '" x2="' + L + '" y1="' + T + '" y2="' + (H - B) + '" stroke="#5f6b7a"/>';
+  s += '<text x="' + ((L + W - R) / 2) + '" y="' + (H - 12) + '" font-size="12" text-anchor="middle" fill="#5f6b7a">價格 →（' + esc(money(x0)) + '～' + esc(money(x1)) + '）</text>';
+  s += '<text x="16" y="' + ((T + H - B) / 2) + '" font-size="12" text-anchor="middle" fill="#5f6b7a" transform="rotate(-90 16 ' + ((T + H - B) / 2) + ')">價值分數（' + Math.round(y0) + '～' + Math.round(y1) + '）→</text>';
+  ps.forEach(function(p){
+    var cx = x(p.price), cy = y(p.value), col = p.isMe ? '#e4572e' : '#24476b';
+    var anchor = cx > W * .7 ? 'end' : 'start', tx = cx + (anchor === 'end' ? -11 : 11);
+    if(p.isMe) s += '<path d="' + star(cx, cy, 11, 5) + '" fill="#e4572e" stroke="#fff" stroke-width="1.5"/>';
+    else s += '<circle cx="' + cx + '" cy="' + cy + '" r="7" fill="' + col + '" opacity=".85"/>';
+    s += '<text x="' + tx + '" y="' + (cy + 4) + '" font-size="12" text-anchor="' + anchor + '" fill="' + col + '" font-weight="' + (p.isMe ? 700 : 400) + '">' + esc(shortName(p.name)) + '（' + p.value + '）</text>';
+  });
+  return s + '</svg>';
+}
+function star(cx, cy, r1, r2){
+  var pts = [];
+  for(var i = 0; i < 10; i++){ var r = i % 2 ? r2 : r1, a = Math.PI / 5 * i - Math.PI / 2; pts.push((cx + r * Math.cos(a)).toFixed(1) + ',' + (cy + r * Math.sin(a)).toFixed(1)); }
+  return 'M' + pts.join('L') + 'Z';
+}
+
+/* ================= 呈現 ================= */
+var TABS = [
+  {id:'overview', label:'📊 總覽'}, {id:'price', label:'💰 價格分析'}, {id:'features', label:'🧩 商品特色'},
+  {id:'proscons', label:'⚖ 競品優缺點'}, {id:'position', label:'🎯 產品定位'}, {id:'strategy', label:'🚀 銷售策略'}
+];
+var curTab = 'overview';
+function srcBadge(key){ var r = state.result; return r && r.src[key] === 'ai' ? '<span class="srcbadge src-ai">AI</span>' : '<span class="srcbadge src-rule">規則式</span>'; }
+function regenBtn(sec){ return '<button class="btn ai small" type="button" data-regen="' + sec + '">✨ AI 重新產生此區塊</button>'; }
+function list(arr, tag){ tag = tag || 'ul'; return '<' + tag + '>' + (arr || []).map(function(x){ return '<li>' + esc(x) + '</li>'; }).join('') + '</' + tag + '>'; }
+
+function renderResult(){
+  var r = state.result; if(!r) return;
+  $('result').classList.add('show');
+  $('resTitle').textContent = '② 分析結果：' + (state.input.me.name || '');
+  $('tabs').innerHTML = TABS.map(function(t){ return '<button class="tab' + (t.id === curTab ? ' on' : '') + '" type="button" data-tab="' + t.id + '">' + t.label + '</button>'; }).join('');
+  $('panes').innerHTML = TABS.map(function(t){ return '<div class="pane' + (t.id === curTab ? ' on' : '') + '" id="pane-' + t.id + '">' + paneHtml(t.id, r) + '</div>'; }).join('');
+}
+function paneHtml(id, r){
+  var meP = r.products[0], P = r.price, M = r.matrix, S = r.strategy, Q = E.QUADRANTS[r.positioning.quad];
+  if(id === 'overview'){
+    var marginCls = P.margin == null ? '' : P.margin < .15 ? 'bad' : P.margin < .3 ? 'warn' : 'ok';
+    return '<div class="pane-head"><h3>總覽 ' + srcBadge('summary') + '</h3>' + regenBtn('summary') + '</div>'
+      + '<div class="kpis">'
+      + kpi('競品數', (r.products.length - 1) + ' 個', r.catLabel + '｜' + r.platformLabel)
+      + kpi('競品均價', money(P.avgComp), '最低 ' + money(P.min) + '／最高 ' + money(P.max))
+      + kpi('我的售價', money(meP.price), (meP.gap != null ? '與均價 ' + pct(meP.gap, true) : '') + '｜' + meP.band, true)
+      + kpi('預估毛利率', P.margin != null ? '<span class="' + marginCls + '">' + pct(P.margin) + '</span>' : '—', P.margin != null ? '扣平台費 ' + Math.round(P.feeRate * 100) + '% 與成本' : '填成本即可計算')
+      + kpi('差異點／缺口', M.unique.length + '／' + M.gaps.length, '獨有特色／待補特色')
+      + kpi('目前定位', '<span style="font-size:1rem;color:' + Q.color + '">' + esc(Q.label) + '</span>', '價值分數 ' + meP.value)
+      + '</div>'
+      + '<div class="summary">' + esc(r.summary) + '</div>'
+      + '<div class="st-grid">'
+      + '<div class="st"><h4>🎯 建議售價區間</h4><div class="price-range">' + esc(money(S.priceRange[0])) + '～' + esc(money(S.priceRange[1])) + '</div><div class="muted">' + esc(Q.label) + (S.floorApplied ? '｜已依成本＋平台費＋15% 最低毛利墊高下限' : '') + '</div></div>'
+      + '<div class="st"><h4>⚡ 最優先的三件事</h4>' + list(S.plan[0].tasks.slice(0, 2).concat([S.plan[1].tasks[0]]), 'ol') + '</div>'
+      + '</div>';
+  }
+  if(id === 'price'){
+    var rows = r.products.map(function(p){
+      return '<tr class="' + (p.isMe ? 'me' : '') + '"><td>' + (p.isMe ? '★ ' : '') + esc(p.name) + aiTag(p, 'price') + '</td><td class="num">' + esc(money(p.price)) + '</td><td class="num">' + (p.isMe || p.gap == null ? (p.isMe && p.gap != null ? pct(p.gap, true) : '—') : pct(p.gap, true)) + '</td><td>' + esc(p.band) + '</td><td class="num">' + (p.rating != null ? p.rating + aiTag(p, 'rating') : '—') + '</td><td class="num">' + (p.reviews != null ? p.reviews.toLocaleString() + aiTag(p, 'reviews') : '—') + '</td></tr>';
+    }).join('');
+    var mc = '';
+    if(meP.price){
+      mc = '<div class="st" style="margin-top:14px"><h4>🧮 我的單件毛利試算（' + esc(r.platformLabel) + '）</h4><div class="tbl-wrap"><table class="t"><tbody>'
+        + '<tr><td>售價</td><td class="num">' + money(meP.price) + '</td></tr>'
+        + '<tr><td>平台費（' + Math.round(P.feeRate * 1000) / 10 + '%，可在 ⚙ 常用設定調整）</td><td class="num">－' + money(P.feeAmt) + '</td></tr>'
+        + '<tr><td>成本</td><td class="num">' + (meP.cost != null ? '－' + money(meP.cost) : '未填') + '</td></tr>'
+        + '<tr><td><b>單件毛利</b></td><td class="num"><b>' + (P.profit != null ? money(P.profit) + '（' + pct(P.margin) + '）' : '—') + '</b></td></tr>'
+        + '</tbody></table></div>'
+        + (P.margin != null && P.margin < .15 ? '<p class="bad">⚠ 毛利率低於 15%，再扣廣告、運費與退貨後可能虧損，不建議再降價。</p>' : '')
+        + '<p class="muted">未含運費補貼、廣告費、退貨與倉儲成本。</p></div>';
+    }
+    return '<div class="pane-head"><h3>價格梯與價格帶</h3></div><div class="chart-wrap">' + priceLadderSvg(r) + '</div>'
+      + '<div class="kpis" style="margin-top:12px">' + kpi('中位數', money(P.median)) + kpi('25%／75% 分位', money(P.p25) + '／' + money(P.p75)) + kpi('我的價格排名', P.meRank ? '第 ' + P.meRank + ' 低／共 ' + P.count : '—') + '</div>'
+      + '<div class="tbl-wrap"><table class="t"><thead><tr><th>商品</th><th class="num">售價</th><th class="num">與競品均價差</th><th>價格帶</th><th class="num">評分</th><th class="num">評論數</th></tr></thead><tbody>' + rows + '</tbody></table></div>' + mc;
+  }
+  if(id === 'features'){
+    var head = '<tr><th>特色</th>' + r.products.map(function(p){ return '<th class="c' + (p.isMe ? ' me' : '') + '">' + esc(shortName(p.name)) + '</th>'; }).join('') + '<th class="c">競品具備率</th></tr>';
+    var body = '', lastDim = '';
+    M.rows.forEach(function(row){
+      if(row.dim !== lastDim){ body += '<tr class="dim"><td colspan="' + (r.products.length + 2) + '">' + esc(row.dim) + '</td></tr>'; lastDim = row.dim; }
+      body += '<tr><td>' + esc(row.label) + '</td>' + row.has.map(function(h, i){ return '<td class="c ' + (h ? 'y' : 'n') + (i === 0 ? ' me' : '') + '">' + (h ? '✓' : '–') + '</td>'; }).join('') + '<td class="c">' + Math.round(row.compShare * 100) + '%</td></tr>';
+    });
+    var customRows = r.products.filter(function(p){ return p.custom.length; }).map(function(p){
+      return '<div style="margin:4px 0"><b>' + esc(shortName(p.name)) + '：</b>' + p.custom.map(function(c){ return '<span class="pill">' + esc(c) + '</span>'; }).join('') + '</div>';
+    }).join('');
+    return '<div class="pane-head"><h3>特色矩陣</h3><span class="muted">由特色欄與商品名稱比對 ' + E.FEATURES.length + ' 類常見特色</span></div>'
+      + (M.rows.length ? '<div class="tbl-wrap"><table class="t mx"><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div>' : '<p class="muted">沒有比對到常見特色，請在特色欄多寫一些描述。</p>')
+      + '<div class="chips3">'
+      + '<div class="box"><h4>🧱 市場基本要求 <small class="muted">多數競品都有</small></h4>' + pills(M.common, 'b', '（競品間沒有共同特色）') + '</div>'
+      + '<div class="box"><h4>🌟 你的差異點 <small class="muted">只有你有</small></h4>' + pills(M.unique, 'g', '（目前沒有獨有特色，建議找出 1～2 個）') + '</div>'
+      + '<div class="box"><h4>🕳 待補缺口 <small class="muted">半數以上競品有、你沒有</small></h4>' + pills(M.gaps, 'r', '（沒有明顯缺口）') + '</div>'
+      + '</div>'
+      + (customRows ? '<h3>其他未歸類特色</h3>' + customRows : '');
+  }
+  if(id === 'proscons'){
+    var cards = r.proscons.map(function(pc, i){
+      var p = r.products[i];
+      return '<div class="pc' + (pc.isMe ? ' me' : '') + '"><h4>' + (pc.isMe ? '★ ' : '') + esc(pc.name) + '</h4>'
+        + '<div class="meta">' + esc(money(p.price)) + '｜評分 ' + (p.rating != null ? p.rating : '—') + '｜評論 ' + (p.reviews != null ? p.reviews.toLocaleString() : '—') + '｜價值分數 ' + p.value + (Object.keys(p.ai || {}).length ? ' <span class="aibadge">含 AI 推測</span>' : '') + '</div>'
+        + '<div class="lbl ok">優點</div><ul class="pros">' + pc.pros.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>'
+        + '<div class="lbl bad">缺點</div><ul class="cons">' + pc.cons.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></div>';
+    }).join('');
+    var pains = r.compPains.length ? '<div class="st" style="margin-top:14px"><h4>🔎 競品共通痛點（從評論摘錄整理）</h4><ul>' + r.compPains.map(function(p){ return '<li><b>' + esc(p.aspect) + '</b>（' + p.n + ' 家）：' + esc(p.examples.join('；')) + '</li>'; }).join('') + '</ul></div>' : '<p class="muted" style="margin-top:12px">貼上競品評論摘錄，就能整理出競品共通痛點。</p>';
+    return '<div class="pane-head"><h3>競品優缺點 ' + srcBadge('proscons') + '</h3>' + regenBtn('proscons') + '</div><div class="pc-grid">' + cards + '</div>' + pains;
+  }
+  if(id === 'position'){
+    var qc = r.positioning.qCount;
+    return '<div class="pane-head"><h3>產品定位圖</h3><span class="muted">X＝價格，Y＝價值分數（特色豐富度 55%＋評分 30%＋評論數 15%）；虛線為中位數</span></div>'
+      + '<div class="chart-wrap">' + positionSvg(r) + '</div>'
+      + '<div class="qcard" style="border-left-color:' + Q.color + '">目前定位：<b style="color:' + Q.color + '">' + esc(Q.label) + '</b>　<span class="muted">競品分布：精品型 ' + qc.premium + '／CP 值型 ' + qc.value + '／入門型 ' + qc.budget + '／高價低值 ' + qc.overpriced + '</span></div>'
+      + '<div class="pane-head" style="margin-top:12px"><h3>定位陳述 ' + srcBadge('statement') + '</h3>' + regenBtn('position') + '</div>'
+      + '<div class="statement">' + esc(r.positioning.statement) + '</div>'
+      + '<h3>市場機會 ' + srcBadge('opportunity') + '</h3><p>' + esc(r.positioning.opportunity) + '</p>';
+  }
+  if(id === 'strategy'){
+    return '<div class="pane-head"><h3>銷售策略 ' + srcBadge('pricing') + '</h3>' + regenBtn('strategy') + '</div>'
+      + '<div class="st-grid">'
+      + '<div class="st full"><h4>💲 定價策略</h4><div class="price-range">建議售價 ' + esc(money(S.priceRange[0])) + '～' + esc(money(S.priceRange[1])) + '</div><p style="margin:6px 0 0">' + esc(S.pricing) + '</p>' + (S.floor ? '<p class="muted" style="margin:4px 0 0">最低安全售價（成本＋平台費＋15% 毛利）約 ' + esc(money(S.floor)) + '。建議價格區間一律由本工具計算，不採用 AI 數字。</p>' : '') + '</div>'
+      + '<div class="st"><h4>✍ 主打賣點文案</h4>' + S.copies.map(function(c){ return '<div class="copyline"><span>' + esc(c) + '</span><button type="button" data-copy="' + esc(c) + '">複製</button></div>'; }).join('') + '</div>'
+      + '<div class="st"><h4>🎁 促銷與組合</h4>' + list(S.promos) + '</div>'
+      + '<div class="st"><h4>⭐ 評論經營</h4>' + list(S.reviewOps) + '</div>'
+      + '<div class="st"><h4>🔑 廣告關鍵字方向</h4>' + pills(S.keywords, 'b') + '<p class="muted" style="margin:6px 0 0">競品品牌字廣告請先確認平台規範與商標法。</p></div>'
+      + '<div class="st"><h4>🎯 從競品痛點切入</h4>' + (S.attack.length ? list(S.attack) : '<p class="muted">貼上競品評論摘錄後才能整理。</p>') + '</div>'
+      + '<div class="st"><h4>🛒 ' + esc(r.platformLabel) + ' 平台操作</h4>' + list(S.platformTips) + '</div>'
+      + '<div class="st full"><h4>🗓 30 天行動計畫</h4><div class="plan">' + S.plan.map(function(w){ return '<div class="wk"><b>' + esc(w.week) + '</b>' + list(w.tasks) + '</div>'; }).join('') + '</div></div>'
+      + '<div class="st full"><h4>⚠ 風險提醒</h4><p style="margin:0">' + esc(S.risk) + '</p></div>'
+      + '</div>';
+  }
+  return '';
+}
+function kpi(l, v, s, hl){ return '<div class="kpi' + (hl ? ' hl' : '') + '"><div class="l">' + esc(l) + '</div><div class="v">' + (/<span/.test(v) ? v : esc(v)) + '</div>' + (s ? '<div class="s">' + esc(s) + '</div>' : '') + '</div>'; }
+function pills(arr, cls, empty){ return arr && arr.length ? arr.map(function(x){ return '<span class="pill ' + (cls || '') + '">' + esc(x) + '</span>'; }).join('') : '<span class="muted">' + esc(empty || '—') + '</span>'; }
+function aiTag(p, k){ return p.ai && p.ai[k] ? ' <span class="aibadge">AI</span>' : ''; }
+
+/* ================= AI ================= */
+function needKey(){
+  if(!settings.apiKey){ toast('請先在 ⚙ 常用設定填入 AI 金鑰'); openSettings(true); return true; }
+  return false;
+}
+function setStatus(msg){ $('aiStatus').innerHTML = msg || ''; }
+function compactData(r){
+  return {
+    category: r.noun, platform: r.platformLabel, unit: unit(),
+    myProduct: {name: state.input.me.name, price: r.products[0].price, cost: r.products[0].cost, target: state.input.me.target, pain: state.input.me.pain, features: state.input.me.features},
+    competitors: r.products.slice(1).map(function(p){ return {name: p.name, price: p.price, rating: p.rating, reviews: p.reviews, features: p.featuresText, reviewExcerpts: String(p.reviewsText).slice(0, 800), aiEstimated: Object.keys(p.ai || {}).length > 0}; }),
+    computed: {compAvgPrice: Math.round(r.price.avgComp || 0), myBand: r.products[0].band, myGapVsAvg: r.products[0].gap, marginRate: r.price.margin, positioning: E.QUADRANTS[r.positioning.quad].label,
+      suggestedPriceRange: r.strategy.priceRange, uniqueFeatures: r.matrix.unique, gaps: r.matrix.gaps, marketBasics: r.matrix.common,
+      competitorPains: r.compPains.map(function(p){ return p.aspect + '×' + p.n; })}
+  };
+}
+var SECTION_KEYS = {
+  summary: '"summary": "120～200 字的整體分析摘要（引用 computed 的數字，不要自己編數字）"',
+  proscons: '"proscons": [ {"name": "商品名稱（與輸入完全相同，包含我的商品）", "pros": ["3～6 點優點，每點 12～30 字"], "cons": ["3～6 點缺點"]} ]',
+  position: '"statement": "一句完整的產品定位陳述（給誰／什麼類別／獨特價值／相較主要競品）",\n  "opportunity": "80～150 字的市場機會說明"',
+  strategy: '"pricing": "定價策略說明 80～150 字（價格區間沿用 computed.suggestedPriceRange，不要另外給數字）",\n  "copies": ["3 則主打賣點文案，每則 15～35 字，不可點名或貶低競品"],\n  "promos": ["3～4 點促銷與組合建議"],\n  "reviewOps": ["2～4 點評論經營建議"],\n  "keywords": ["6～10 個廣告關鍵字（不要包含競品品牌名）"],\n  "attack": ["2～4 點：從競品痛點切入的做法"],\n  "plan": [ {"week": "第 1 週｜主題", "tasks": ["2～4 項具體任務"]}, …共 4 週 ],\n  "risk": "60～120 字風險提醒"'
+};
+function buildAnalyzePrompt(r, sections){
+  var keys = sections.map(function(s){ return SECTION_KEYS[s]; }).join(',\n  ');
+  return '你是熟悉台灣電商（蝦皮、momo、PChome、Amazon、品牌官網）的電商營運與行銷顧問。以下是使用者提供的商品與競品資料，以及前端已計算好的統計結果（computed）。\n'
+    + '請根據資料，用繁體中文（台灣用語）產出分析。規則：\n'
+    + '1. 所有數字以 computed 為準，不得自行編造價格、銷量或市占率。\n'
+    + '2. aiEstimated=true 的競品資料是推測值，描述時要保守。\n'
+    + '3. 對競品描述保持客觀，不使用貶低、不實或誇大字眼；賣點文案不可點名競品。\n'
+    + '4. 只輸出一個 JSON 物件，不要任何其他文字或 Markdown。\n\n'
+    + '資料：\n' + JSON.stringify(compactData(r), null, 1) + '\n\n'
+    + '輸出格式：\n{\n  ' + keys + '\n}';
+}
+function strArr(a, min, max){
+  if(!Array.isArray(a)) return null;
+  var out = a.filter(function(x){ return typeof x === 'string' && x.trim(); }).map(function(x){ return x.trim().slice(0, 160); });
+  return out.length >= min ? out.slice(0, max) : null;
+}
+function str(s, min){ return typeof s === 'string' && s.trim().length >= (min || 10) ? s.trim().slice(0, 1200) : null; }
+function validatePatch(parsed, r, sections){
+  var patch = {}, missing = [];
+  function want(s){ return sections.indexOf(s) >= 0; }
+  if(want('summary')){ var s1 = str(parsed.summary, 30); if(s1) patch.summary = s1; else missing.push('摘要'); }
+  if(want('proscons')){
+    var names = r.proscons.map(function(p){ return p.name; });
+    var ok = Array.isArray(parsed.proscons) ? parsed.proscons.map(function(pc){
+      if(!pc || typeof pc.name !== 'string') return null;
+      var nm = names.filter(function(n){ return n === pc.name.trim() || n.indexOf(pc.name.trim()) >= 0 || pc.name.indexOf(n) >= 0; })[0];
+      var pros = strArr(pc.pros, 1, 7), cons = strArr(pc.cons, 1, 7);
+      return nm && pros && cons ? {name: nm, pros: pros, cons: cons} : null;
+    }).filter(Boolean) : [];
+    if(ok.length) patch.proscons = ok;
+    if(ok.length < names.length) missing.push('優缺點（' + (names.length - ok.length) + ' 個商品沿用規則式）');
+  }
+  if(want('position')){
+    var st = str(parsed.statement, 20), op = str(parsed.opportunity, 20);
+    if(st) patch.statement = st; else missing.push('定位陳述');
+    if(op) patch.opportunity = op; else missing.push('市場機會');
+  }
+  if(want('strategy')){
+    var p1 = str(parsed.pricing, 20); if(p1) patch.pricing = p1; else missing.push('定價策略');
+    [['copies',2,5,'賣點文案'],['promos',2,6,'促銷建議'],['reviewOps',1,6,'評論經營'],['keywords',3,12,'關鍵字'],['attack',1,6,'競品痛點切入']].forEach(function(d){
+      var v = strArr(parsed[d[0]], d[1], d[2]); if(v) patch[d[0]] = v; else missing.push(d[3]);
+    });
+    if(Array.isArray(parsed.plan)){
+      var plan = parsed.plan.map(function(w){ var t = w && strArr(w.tasks, 1, 6); return t && typeof w.week === 'string' ? {week: w.week.slice(0, 30), tasks: t} : null; }).filter(Boolean);
+      if(plan.length >= 3) patch.plan = plan.slice(0, 5); else missing.push('30 天計畫');
+    } else missing.push('30 天計畫');
+    var rk = str(parsed.risk, 15); if(rk) patch.risk = rk; else missing.push('風險提醒');
+  }
+  return {patch: patch, missing: missing};
+}
+var busy = false;
+async function aiAnalyze(sections){
+  if(busy) return;
+  if(needKey()) return;
+  if(!state.result && !runAnalysis({silent:true, noSave:true})) return;
+  busy = true; toggleAiBtns(true);
+  var model = settings.model || AI_PROVIDERS[settings.provider].defaultModel;
+  setStatus('⏳ AI 分析中（' + esc(AI_PROVIDERS[settings.provider].label) + '／' + esc(model) + '）…');
+  try{
+    var r = state.result;
+    var text = await callLLM(settings.provider, model, settings.apiKey, buildAnalyzePrompt(r, sections), function(a, st, w){ setStatus('⏳ 服務商忙碌（' + st + '），' + w + ' 秒後第 ' + (a + 1) + ' 次嘗試…'); });
+    var v = validatePatch(extractJsonObject(text), r, sections);
+    state.aiPatch = Object.assign({}, state.aiPatch || {}, v.patch);
+    state.result = applyAiPatch(analyze(state.input), state.aiPatch);
+    renderResult();
+    setStatus(Object.keys(v.patch).length ? '✅ AI 完成' + (v.missing.length ? '；以下欄位沿用規則式：' + esc(v.missing.join('、')) : '') : '⚠ AI 回傳格式不符，全部沿用規則式結果');
+    if(settings.autoSave) saveHistory(true);
+  }catch(e){
+    setStatus('<span class="bad">❌ AI 失敗，已保留規則式結果：' + esc(e.message) + '</span>');
+  }finally{ busy = false; toggleAiBtns(false); }
+}
+function toggleAiBtns(dis){ ['aiAnalyzeBtn','aiFillBtn'].forEach(function(id){ $(id).disabled = dis; }); document.querySelectorAll('[data-regen]').forEach(function(b){ b.disabled = dis; }); }
+
+async function aiFill(){
+  if(busy) return;
+  var inp = readInput();
+  var targets = [];
+  inp.comps.forEach(function(c, i){ if(c.name && (!num(c.price) || !String(c.features).trim() || !String(c.reviewsText).trim() || num(c.rating) == null || num(c.reviews) == null)) targets.push(i); });
+  if(!inp.comps.some(function(c){ return c.name; })){ toast('請先在競品欄填入品牌或商品名稱'); return; }
+  if(!targets.length){ toast('競品資料都已填齊，不需要補'); return; }
+  if(needKey()) return;
+  busy = true; toggleAiBtns(true);
+  var model = settings.model || AI_PROVIDERS[settings.provider].defaultModel;
+  setStatus('⏳ AI 推測競品資料中…');
+  var prompt = '你是熟悉台灣電商市場的商品研究員。使用者的商品類別是「' + (inp.me.category || inp.me.name) + '」，主要平台：' + (E.PLATFORMS[inp.me.platform] || E.PLATFORMS.other).label + '。\n'
+    + '請依你的一般知識，推測下列競品在台灣電商的「典型」資訊。你無法上網，這些是推測值，若不認識該品牌，請依同類商品常見情況合理估計，並在 features 開頭加上「（推測）」。\n'
+    + '只輸出 JSON：{"competitors":[{"name":"與輸入相同","price":數字（' + unit() + '）,"rating":1～5 的數字,"reviews":整數,"features":"5～8 個特色，用逗號分隔","reviewsText":"3～5 句常見顧客評論重點（好評與負評都要有），用句號分隔"}]}\n\n'
+    + '競品：\n' + targets.map(function(i){ var c = inp.comps[i]; return '- ' + c.name + (num(c.price) ? '（已知售價 ' + c.price + '）' : ''); }).join('\n');
+  try{
+    var text = await callLLM(settings.provider, model, settings.apiKey, prompt, function(a, st, w){ setStatus('⏳ 服務商忙碌（' + st + '），' + w + ' 秒後重試…'); });
+    var parsed = extractJsonObject(text);
+    var arr = Array.isArray(parsed.competitors) ? parsed.competitors : [];
+    var filled = 0;
+    targets.forEach(function(i, k){
+      var c = comps[i];
+      var a = arr.filter(function(x){ return x && typeof x.name === 'string' && (x.name.trim() === c.name.trim() || x.name.indexOf(c.name.trim()) >= 0 || c.name.indexOf(x.name.trim()) >= 0); })[0] || arr[k];
+      if(!a) return;
+      c.ai = c.ai || {};
+      var p = num(a.price), rt = num(a.rating), rv = num(a.reviews);
+      if(!num(c.price) && p != null && p > 0 && p < 1e7){ c.price = Math.round(p); c.ai.price = 1; filled++; }
+      if(num(c.rating) == null && rt != null && rt >= 1 && rt <= 5){ c.rating = Math.round(rt * 10) / 10; c.ai.rating = 1; filled++; }
+      if(num(c.reviews) == null && rv != null && rv >= 0 && rv < 1e8){ c.reviews = Math.round(rv); c.ai.reviews = 1; filled++; }
+      if(!String(c.features).trim() && typeof a.features === 'string' && a.features.trim()){ c.features = a.features.trim().slice(0, 400); c.ai.features = 1; filled++; }
+      if(!String(c.reviewsText).trim() && typeof a.reviewsText === 'string' && a.reviewsText.trim()){ c.reviewsText = a.reviewsText.trim().slice(0, 800); c.ai.reviewsText = 1; filled++; }
+    });
+    renderComps(); saveDraft();
+    setStatus(filled ? '✅ 已補齊 ' + filled + ' 個欄位（標示「AI 推測」，請對照競品實際頁面修正後再分析）' : '⚠ AI 回傳格式不符，沒有補上任何欄位');
+  }catch(e){
+    setStatus('<span class="bad">❌ AI 補齊失敗：' + esc(e.message) + '</span>');
+  }finally{ busy = false; toggleAiBtns(false); }
+}
+
+/* ================= 文字報告／PDF ================= */
+function buildMarkdown(){
+  var r = state.result, me = state.input.me, S = r.strategy, M = r.matrix;
+  var L = [];
+  L.push('# 電商競品分析報告：' + me.name);
+  L.push('類別：' + r.noun + '｜平台：' + r.platformLabel + '｜產生時間：' + new Date(r.ts).toLocaleString('zh-TW'));
+  L.push('', '## 總覽', r.summary);
+  L.push('', '## 價格分析', '競品均價 ' + money(r.price.avgComp) + '；最低 ' + money(r.price.min) + '／中位數 ' + money(r.price.median) + '／最高 ' + money(r.price.max));
+  r.products.forEach(function(p){ L.push('- ' + (p.isMe ? '★ ' : '') + p.name + '：' + money(p.price) + '（' + p.band + (p.gap != null ? '，與均價 ' + pct(p.gap, true) : '') + '）'); });
+  if(r.price.margin != null) L.push('我的單件毛利：' + money(r.price.profit) + '（' + pct(r.price.margin) + '，已扣平台費 ' + Math.round(r.price.feeRate * 100) + '%）');
+  L.push('', '## 商品特色', '市場基本要求：' + (M.common.join('、') || '—'), '我的差異點：' + (M.unique.join('、') || '—'), '待補缺口：' + (M.gaps.join('、') || '—'));
+  L.push('', '## 競品優缺點');
+  r.proscons.forEach(function(pc){ L.push('### ' + (pc.isMe ? '★ ' : '') + pc.name, '優點：', pc.pros.map(function(x){ return '- ' + x; }).join('\n'), '缺點：', pc.cons.map(function(x){ return '- ' + x; }).join('\n')); });
+  L.push('', '## 產品定位', '定位：' + E.QUADRANTS[r.positioning.quad].label, r.positioning.statement, '市場機會：' + r.positioning.opportunity);
+  L.push('', '## 銷售策略', '建議售價：' + money(S.priceRange[0]) + '～' + money(S.priceRange[1]), S.pricing);
+  L.push('', '主打賣點文案：', S.copies.map(function(x){ return '- ' + x; }).join('\n'));
+  L.push('', '促銷與組合：', S.promos.map(function(x){ return '- ' + x; }).join('\n'));
+  L.push('', '評論經營：', S.reviewOps.map(function(x){ return '- ' + x; }).join('\n'));
+  L.push('', '廣告關鍵字：' + S.keywords.join('、'));
+  if(S.attack.length) L.push('', '從競品痛點切入：', S.attack.map(function(x){ return '- ' + x; }).join('\n'));
+  L.push('', '30 天行動計畫：');
+  S.plan.forEach(function(w){ L.push(w.week, w.tasks.map(function(x){ return '- ' + x; }).join('\n')); });
+  L.push('', '風險提醒：' + S.risk);
+  L.push('', '—— 由「AI 電商競品分析系統」產生，內容僅供參考，請自行查證。');
+  return L.join('\n');
+}
+function buildPrintReport(){
+  var r = state.result; if(!r) return;
+  var me = state.input.me, S = r.strategy, M = r.matrix;
+  function ul(a){ return '<ul>' + a.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>'; }
+  var h = '<h1>電商競品分析報告：' + esc(me.name) + '</h1>'
+    + '<div class="meta">類別：' + esc(r.noun) + '｜平台：' + esc(r.platformLabel) + '｜' + new Date(r.ts).toLocaleString('zh-TW') + (settings.author ? '｜報告人：' + esc(settings.author) : '') + '</div>'
+    + '<h2>一、總覽</h2><p>' + esc(r.summary) + '</p>'
+    + '<h2>二、價格分析</h2><div class="blk">' + priceLadderSvg(r) + '</div>'
+    + '<table><thead><tr><th>商品</th><th>售價</th><th>與均價差</th><th>價格帶</th><th>評分</th><th>評論數</th></tr></thead><tbody>'
+    + r.products.map(function(p){ return '<tr><td>' + (p.isMe ? '★ ' : '') + esc(p.name) + (Object.keys(p.ai || {}).length ? '（含 AI 推測）' : '') + '</td><td>' + esc(money(p.price)) + '</td><td>' + (p.gap != null ? pct(p.gap, true) : '—') + '</td><td>' + esc(p.band) + '</td><td>' + (p.rating != null ? p.rating : '—') + '</td><td>' + (p.reviews != null ? p.reviews.toLocaleString() : '—') + '</td></tr>'; }).join('')
+    + '</tbody></table>'
+    + (r.price.margin != null ? '<p>我的單件毛利：' + esc(money(r.price.profit)) + '（' + pct(r.price.margin) + '，已扣平台費 ' + Math.round(r.price.feeRate * 100) + '% 與成本）</p>' : '')
+    + '<h2>三、商品特色</h2>'
+    + '<table><thead><tr><th>特色</th>' + r.products.map(function(p){ return '<th>' + esc(shortName(p.name)) + '</th>'; }).join('') + '</tr></thead><tbody>'
+    + M.rows.map(function(row){ return '<tr><td>' + esc(row.label) + '</td>' + row.has.map(function(x){ return '<td style="text-align:center">' + (x ? '✓' : '–') + '</td>'; }).join('') + '</tr>'; }).join('')
+    + '</tbody></table>'
+    + '<p><b>市場基本要求：</b>' + esc(M.common.join('、') || '—') + '<br><b>我的差異點：</b>' + esc(M.unique.join('、') || '—') + '<br><b>待補缺口：</b>' + esc(M.gaps.join('、') || '—') + '</p>'
+    + '<h2>四、競品優缺點</h2>'
+    + r.proscons.map(function(pc){ return '<div class="blk"><b>' + (pc.isMe ? '★ ' : '') + esc(pc.name) + '</b><br>優點：' + ul(pc.pros) + '缺點：' + ul(pc.cons) + '</div>'; }).join('')
+    + '<h2>五、產品定位</h2><div class="blk">' + positionSvg(r) + '</div>'
+    + '<p><b>定位：</b>' + esc(E.QUADRANTS[r.positioning.quad].label) + '</p><p>' + esc(r.positioning.statement) + '</p><p><b>市場機會：</b>' + esc(r.positioning.opportunity) + '</p>'
+    + '<h2>六、銷售策略</h2>'
+    + '<p><b>建議售價：</b>' + esc(money(S.priceRange[0])) + '～' + esc(money(S.priceRange[1])) + '<br>' + esc(S.pricing) + '</p>'
+    + '<div class="blk"><b>主打賣點文案</b>' + ul(S.copies) + '</div>'
+    + '<div class="blk"><b>促銷與組合</b>' + ul(S.promos) + '</div>'
+    + '<div class="blk"><b>評論經營</b>' + ul(S.reviewOps) + '</div>'
+    + '<div class="blk"><b>廣告關鍵字：</b>' + esc(S.keywords.join('、')) + '</div>'
+    + (S.attack.length ? '<div class="blk"><b>從競品痛點切入</b>' + ul(S.attack) + '</div>' : '')
+    + '<div class="blk"><b>' + esc(r.platformLabel) + ' 平台操作</b>' + ul(S.platformTips) + '</div>'
+    + '<div class="blk"><b>30 天行動計畫</b>' + S.plan.map(function(w){ return '<div>' + esc(w.week) + ul(w.tasks) + '</div>'; }).join('') + '</div>'
+    + '<p><b>風險提醒：</b>' + esc(S.risk) + '</p>'
+    + '<div class="foot">本報告由「AI 電商競品分析系統」產生，依使用者輸入資料以規則式' + (state.aiPatch ? '＋AI' : '') + '分析，僅供教學與參考，不構成經營建議；標示 AI 推測的數值請自行查核。製作：Mark Tsai（蔡豐全）</div>';
+  $('printReport').innerHTML = h;
+  $('pdfWatermark').classList.toggle('off', !settings.watermark);
+}
+window.addEventListener('beforeprint', buildPrintReport);
+
+/* ================= 歷史 ================= */
+function loadHist(){ try{ return JSON.parse(lsGet(HIST_KEY) || '[]') || []; }catch(e){ return []; } }
+function saveHist(h){ lsSet(HIST_KEY, JSON.stringify(h.slice(0, 30))); }
+function saveHistory(silent){
+  if(!state.result) return;
+  var h = loadHist();
+  var rec = {id: state.histId || ('h' + Date.now()), ts: Date.now(), title: state.input.me.name, input: state.input, aiPatch: state.aiPatch};
+  state.histId = rec.id;
+  h = h.filter(function(x){ return x.id !== rec.id; }); h.unshift(rec); saveHist(h); renderHistory();
+  if(!silent) toast('已存入歷史紀錄');
+}
+function renderHistory(){
+  var h = loadHist();
+  $('historyList').innerHTML = h.length ? h.map(function(x){
+    return '<div class="hist-item"><span class="t">' + esc(x.title || '（未命名）') + (x.aiPatch ? ' <span class="aibadge">AI</span>' : '') + '</span><span class="d">' + new Date(x.ts).toLocaleString('zh-TW') + '</span>'
+      + '<button class="btn ghost small" type="button" data-hload="' + x.id + '">開啟</button><button class="btn ghost small" type="button" data-hdel="' + x.id + '">刪除</button></div>';
+  }).join('') : '<p class="muted">還沒有紀錄。</p>';
+}
+function loadRecord(rec){
+  writeInput(rec.input); state.aiPatch = rec.aiPatch || null; state.histId = rec.id || null;
+  runAnalysis({keepAi: true, noSave: true});
+}
+function download(name, text){
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], {type:'application/json'})); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
+}
+
+/* ================= 設定面板 ================= */
+function openSettings(force){
+  var sec = $('settings'), show = force === true ? true : sec.hidden;
+  sec.hidden = !show;
+  $('settingsBtn').setAttribute('aria-expanded', String(show));
+  if(show) sec.scrollIntoView({behavior:'smooth', block:'start'});
+}
+function applySettings(){
+  document.body.classList.remove('fs-l','fs-xl');
+  if(settings.fs) document.body.classList.add('fs-' + settings.fs);
+  document.querySelectorAll('#fsSeg button').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-fs') === (settings.fs || '')); });
+}
+function fillSettingsUI(){
+  $('aiProvider').value = AI_PROVIDERS[settings.provider] ? settings.provider : 'claude';
+  renderModelOptions($('aiProvider').value, settings.model);
+  $('aiKey').value = settings.apiKey || '';
+  $('setPlatform').value = settings.platform;
+  $('feeGrid').innerHTML = Object.keys(E.PLATFORMS).map(function(k){ return '<label>' + esc(E.PLATFORMS[k].label) + '<input type="number" min="0" max="60" step="0.5" data-fee="' + k + '" value="' + esc(settings.fees[k]) + '"></label>'; }).join('');
+  $('setUnit').value = settings.unit;
+  $('setAutoSave').checked = !!settings.autoSave; $('setMarquee').checked = !!settings.marquee;
+  $('setAuthor').value = settings.author || ''; $('setWatermark').checked = !!settings.watermark;
+  applySettings();
+}
+
+/* ================= 關於／警語 ================= */
+function openAbout(which){
+  $('aboutWarn').innerHTML = $('warnBox').querySelector('ul').innerHTML;
+  $('about').classList.add('show');
+  if(which === 'creator') setTimeout(function(){ $('creatorBox').scrollIntoView({block:'center'}); }, 30);
+}
+function closeAbout(){ $('about').classList.remove('show'); lsSet(WARN_KEY, '1'); }
+
+/* ================= 跑馬燈 ================= */
+function initMarquee(){
+  var MARQUEE_CHECK_URL = "https://script.google.com/macros/s/AKfycbwKX0DNNbY8y4nf90BFTHtxgfqJcHHcZasRrgycl4QAe52_hkjMWSkYk4xOsqU-JPCROw/exec";
+  var STORAGE_KEY = PREFIX + 'marquee';
+  var REFRESH_MS = 20 * 60 * 1000;
+  var bar = $('marqueeBar'), track = $('marqueeTrack'), lastKey = null;
+  function loadCache(){ try{ return JSON.parse(lsGet(STORAGE_KEY) || '[]'); }catch(e){ return []; } }
+  function saveCache(items){ lsSet(STORAGE_KEY, JSON.stringify(items)); }
+  function appendParsedText(container, text){
+    var re = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, lastIndex = 0, m;
+    while((m = re.exec(text))){
+      if(m.index > lastIndex) container.appendChild(document.createTextNode(text.slice(lastIndex, m.index)));
+      var a = document.createElement('a');
+      a.href = m[2]; a.textContent = m[1]; a.target = '_blank'; a.rel = 'noopener noreferrer';
+      a.style.color = 'inherit'; a.style.textDecoration = 'underline';
+      container.appendChild(a); lastIndex = re.lastIndex;
+    }
+    if(lastIndex < text.length) container.appendChild(document.createTextNode(text.slice(lastIndex)));
+  }
+  function render(items){
+    if(!settings.marquee || !items || !items.length) return;
+    var key = JSON.stringify(items);
+    if(key === lastKey) return;
+    lastKey = key; track.innerHTML = '';
+    var frag = document.createDocumentFragment();
+    function pass(){ items.forEach(function(item, idx){ if(idx > 0) frag.appendChild(document.createTextNode('　★　')); appendParsedText(frag, String(item)); }); }
+    pass(); frag.appendChild(document.createTextNode('　★　')); pass();
+    track.appendChild(frag);
+    bar.classList.add('show'); document.body.classList.add('has-marquee');
+    track.style.animationDuration = Math.max(track.scrollWidth / 2 / 80, 10) + 's';
+  }
+  function fetchMarquee(){
+    if(!settings.marquee) return;
+    fetch(MARQUEE_CHECK_URL, {method:'POST', body:JSON.stringify({serial:''})})
+      .then(function(r){ return r.json(); })
+      .then(function(data){ if(data && Array.isArray(data.marquee) && data.marquee.length){ saveCache(data.marquee); render(data.marquee); } })
+      .catch(function(){});
+  }
+  window.__applyMarquee = function(){
+    if(!settings.marquee){ bar.classList.remove('show'); document.body.classList.remove('has-marquee'); lastKey = null; }
+    else { render(loadCache()); fetchMarquee(); }
+  };
+  render(loadCache()); fetchMarquee(); setInterval(fetchMarquee, REFRESH_MS);
+}
+
+/* ================= PWA ================= */
+function initPwa(){
+  var deferredPrompt = null;
+  var ua = navigator.userAgent || '';
+  var isIOSDevice = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  var isMacDesktop = /Macintosh/.test(ua) && !isIOSDevice;
+  var isSafariEngine = /^((?!chrome|crios|fxios|edgios|android).)*safari/i.test(ua);
+  var isStandalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+  function fallbackMessage(){
+    if(isIOSDevice) return '請點畫面上的「分享」圖示，選「加入主畫面」';
+    if(isMacDesktop && isSafariEngine) return '請用選單列「檔案」→「加入 Dock」（Safari 17 以上）';
+    return '目前瀏覽器不支援安裝，或已安裝過';
+  }
+  window.addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); deferredPrompt = e; });
+  window.addEventListener('appinstalled', function(){ deferredPrompt = null; toast('已加入主畫面'); });
+  document.querySelectorAll('[data-install]').forEach(function(btn){
+    if(isStandalone){ btn.style.display = 'none'; return; }
+    btn.addEventListener('click', function(){
+      if(!deferredPrompt){ toast(fallbackMessage()); return; }
+      try{ deferredPrompt.prompt(); deferredPrompt.userChoice.then(function(){ deferredPrompt = null; }); }catch(e){ toast(fallbackMessage()); }
+    });
+  });
+  if('serviceWorker' in navigator && location.protocol !== 'file:'){
+    window.addEventListener('load', function(){ navigator.serviceWorker.register('service-worker.js').catch(function(){}); });
+  }
+}
+
+/* ================= 初始化與事件 ================= */
+function init(){
+  var platOpts = Object.keys(E.PLATFORMS).map(function(k){ return '<option value="' + k + '">' + esc(E.PLATFORMS[k].label) + '</option>'; }).join('');
+  $('mPlatform').innerHTML = platOpts; $('setPlatform').innerHTML = platOpts;
+  $('aiProvider').innerHTML = Object.keys(AI_PROVIDERS).map(function(k){ return '<option value="' + k + '">' + AI_PROVIDERS[k].label + '</option>'; }).join('');
+  $('sampleChips').innerHTML = E.SAMPLES.map(function(s){ return '<button class="chip" type="button" data-sample="' + s.key + '">' + esc(s.label) + '</button>'; }).join(' ');
+  fillSettingsUI();
+
+  var draft = null; try{ draft = JSON.parse(lsGet(DRAFT_KEY) || 'null'); }catch(e){}
+  writeInput(draft);
+
+  document.addEventListener('click', function(e){
+    var t = e.target.closest('[data-sample],[data-del],[data-tab],[data-regen],[data-copy],[data-hload],[data-hdel],[data-open-about],[data-fs]');
+    if(!t) return;
+    if(t.hasAttribute('data-sample')){
+      var s = E.SAMPLES.filter(function(x){ return x.key === t.getAttribute('data-sample'); })[0];
+      writeInput({me: s.me, comps: s.comps}); state.histId = null; saveDraft(); runAnalysis();
+    } else if(t.hasAttribute('data-del')){
+      comps.splice(+t.getAttribute('data-del'), 1); if(!comps.length) comps.push(blankComp()); renderComps(); saveDraft();
+    } else if(t.hasAttribute('data-tab')){
+      curTab = t.getAttribute('data-tab');
+      document.querySelectorAll('.tab').forEach(function(b){ b.classList.toggle('on', b === t); });
+      document.querySelectorAll('.pane').forEach(function(p){ p.classList.toggle('on', p.id === 'pane-' + curTab); });
+    } else if(t.hasAttribute('data-regen')){
+      aiAnalyze([t.getAttribute('data-regen')]);
+    } else if(t.hasAttribute('data-copy')){
+      copyText(t.getAttribute('data-copy'));
+    } else if(t.hasAttribute('data-hload')){
+      var rec = loadHist().filter(function(x){ return x.id === t.getAttribute('data-hload'); })[0];
+      if(rec){ loadRecord(rec); toast('已開啟：' + (rec.title || '')); }
+    } else if(t.hasAttribute('data-hdel')){
+      saveHist(loadHist().filter(function(x){ return x.id !== t.getAttribute('data-hdel'); })); renderHistory();
+    } else if(t.hasAttribute('data-open-about')){
+      e.preventDefault(); openAbout(t.getAttribute('data-open-about'));
+    } else if(t.hasAttribute('data-fs')){
+      settings.fs = t.getAttribute('data-fs'); saveSettings(); applySettings();
+    }
+  });
+  $('compList').addEventListener('input', function(e){
+    var el = e.target, box = el.closest('.comp'); if(!box || !el.getAttribute('data-k')) return;
+    var c = comps[+box.getAttribute('data-i')], k = el.getAttribute('data-k');
+    c[k] = el.value; if(c.ai && c.ai[k]){ delete c.ai[k]; }
+    saveDraft();
+  });
+  Object.keys(ME_IDS).forEach(function(k){ $(ME_IDS[k]).addEventListener('input', saveDraft); $(ME_IDS[k]).addEventListener('change', saveDraft); });
+  $('addCompBtn').addEventListener('click', function(){ if(comps.length < MAX_COMPS){ comps.push(blankComp()); renderComps(); saveDraft(); } });
+  $('analyzeBtn').addEventListener('click', function(){ state.histId = null; if(runAnalysis()) setStatus('✅ 規則式分析完成'); });
+  $('aiAnalyzeBtn').addEventListener('click', function(){ state.histId = null; if(!needKey() && runAnalysis({silent:true, noSave:true})) aiAnalyze(['summary','proscons','position','strategy']); });
+  $('aiFillBtn').addEventListener('click', aiFill);
+  $('clearFormBtn').addEventListener('click', function(){ writeInput(null); state.histId = null; state.aiPatch = null; saveDraft(); setStatus(''); toast('已清空表單'); });
+
+  $('pdfBtn').addEventListener('click', function(){ buildPrintReport(); window.print(); });
+  $('copyMdBtn').addEventListener('click', function(){ copyText(buildMarkdown()); });
+  $('saveBtn').addEventListener('click', function(){ saveHistory(false); });
+  $('exportOneBtn').addEventListener('click', function(){
+    if(!state.result) return;
+    download('競品分析_' + (state.input.me.name || 'export').slice(0, 20) + '.json', JSON.stringify({app:'ecommerce-competitor-analyzer', version:1, records:[{id:'h' + Date.now(), ts:Date.now(), title:state.input.me.name, input:state.input, aiPatch:state.aiPatch}]}, null, 2));
+  });
+  $('exportAllBtn').addEventListener('click', function(){ download('競品分析_全部紀錄.json', JSON.stringify({app:'ecommerce-competitor-analyzer', version:1, records:loadHist()}, null, 2)); });
+  $('importFile').addEventListener('change', function(){
+    var f = this.files[0]; if(!f) return;
+    var rd = new FileReader();
+    rd.onload = function(){
+      try{
+        var d = JSON.parse(rd.result), recs = Array.isArray(d) ? d : d.records;
+        if(!Array.isArray(recs)) throw new Error('格式不符');
+        recs = recs.filter(function(x){ return x && x.input && x.input.me; });
+        var h = loadHist(), ids = h.map(function(x){ return x.id; });
+        recs.forEach(function(x){ if(!x.id || ids.indexOf(x.id) >= 0) x.id = 'h' + Date.now() + Math.random().toString(36).slice(2, 6); x.ts = x.ts || Date.now(); h.unshift(x); });
+        saveHist(h); renderHistory(); toast('已匯入 ' + recs.length + ' 筆');
+        if(recs.length === 1) loadRecord(recs[0]);
+      }catch(err){ toast('匯入失敗：' + err.message); }
+    };
+    rd.readAsText(f); this.value = '';
+  });
+
+  $('historyBtn').addEventListener('click', function(){ var p = $('historyPanel'); p.classList.toggle('show'); if(p.classList.contains('show')){ renderHistory(); p.scrollIntoView({behavior:'smooth'}); } });
+  $('settingsBtn').addEventListener('click', function(){ openSettings(); });
+  $('aiProvider').addEventListener('change', function(){ renderModelOptions(this.value, ''); persistApiConfig(); });
+  $('aiModel').addEventListener('change', function(){ $('aiModelCustom').style.display = this.value === 'custom' ? 'block' : 'none'; persistApiConfig(); });
+  $('aiModelCustom').addEventListener('input', persistApiConfig);
+  $('aiKey').addEventListener('input', persistApiConfig);
+  $('testAiBtn').addEventListener('click', async function(){
+    persistApiConfig();
+    if(!settings.apiKey){ $('testAiMsg').textContent = '請先貼上金鑰'; return; }
+    $('testAiMsg').textContent = '測試中…';
+    try{ var t = await callLLM(settings.provider, settings.model || AI_PROVIDERS[settings.provider].defaultModel, settings.apiKey, '請只回覆兩個字：成功'); $('testAiMsg').textContent = '✅ 連線成功：' + t.slice(0, 20); }
+    catch(e){ $('testAiMsg').textContent = '❌ ' + e.message; }
+  });
+  $('setPlatform').addEventListener('change', function(){ settings.platform = this.value; saveSettings(); });
+  $('feeGrid').addEventListener('input', function(e){ var k = e.target.getAttribute('data-fee'); if(!k) return; var v = num(e.target.value); if(v != null && v >= 0 && v <= 60){ settings.fees[k] = v; saveSettings(); if(state.result) runAnalysis({keepAi:true, silent:true, noSave:true}); } });
+  $('setUnit').addEventListener('input', function(){ settings.unit = this.value.trim() || '元'; saveSettings(); if(state.result) runAnalysis({keepAi:true, silent:true, noSave:true}); });
+  $('setAutoSave').addEventListener('change', function(){ settings.autoSave = this.checked; saveSettings(); });
+  $('setMarquee').addEventListener('change', function(){ settings.marquee = this.checked; saveSettings(); if(window.__applyMarquee) window.__applyMarquee(); });
+  $('setAuthor').addEventListener('input', function(){ settings.author = this.value.trim(); saveSettings(); });
+  $('setWatermark').addEventListener('change', function(){ settings.watermark = this.checked; saveSettings(); });
+  $('resetSetBtn').addEventListener('click', function(){
+    var key = settings.apiKey, prov = settings.provider, model = settings.model;
+    settings = JSON.parse(JSON.stringify(DEFAULTS)); settings.fees = defaultFees(); settings.apiKey = key; settings.provider = prov; settings.model = model;
+    saveSettings(); fillSettingsUI(); if(window.__applyMarquee) window.__applyMarquee(); toast('已恢復預設設定（AI 金鑰保留）');
+  });
+  $('clearLocalBtn').addEventListener('click', function(){
+    try{ Object.keys(localStorage).filter(function(k){ return k.indexOf(PREFIX) === 0; }).forEach(lsDel); }catch(e){}
+    settings = JSON.parse(JSON.stringify(DEFAULTS)); settings.fees = defaultFees();
+    fillSettingsUI(); writeInput(null); renderHistory(); toast('已清除本機資料');
+  });
+  $('aboutClose').addEventListener('click', closeAbout);
+  $('aboutOk').addEventListener('click', closeAbout);
+  $('about').addEventListener('click', function(e){ if(e.target === this) closeAbout(); });
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && $('about').classList.contains('show')) closeAbout(); });
+
+  initMarquee(); initPwa();
+  if(!lsGet(WARN_KEY)) setTimeout(function(){ openAbout(); }, 400);
+}
+function copyText(t){
+  if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(t).then(function(){ toast('已複製'); }, function(){ fallbackCopy(t); }); }
+  else fallbackCopy(t);
+}
+function fallbackCopy(t){
+  var ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select();
+  try{ document.execCommand('copy'); toast('已複製'); }catch(e){ toast('複製失敗，請手動選取'); }
+  ta.remove();
+}
+
+window.__eca = {
+  analyze: analyze, getState: function(){ return state; }, buildPrintReport: buildPrintReport, buildMarkdown: buildMarkdown,
+  validatePatch: validatePatch, applyAiPatch: applyAiPatch, analyzeReviews: analyzeReviews,
+  loadSample: function(key){ var s = E.SAMPLES.filter(function(x){ return x.key === key; })[0]; writeInput({me: s.me, comps: s.comps}); return runAnalysis({silent:true, noSave:true}); }
+};
+init();
+})();
+</script>
+</body>
+</html>
