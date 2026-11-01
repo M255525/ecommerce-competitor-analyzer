@@ -3,3 +3,5 @@ Thumbs.db
 *.bak
 _check.js
 gas/.clasp.json
+.wrangler/
+node_modules/

@@ -373,7 +373,7 @@ body:has(#entryGate:not(.hidden)){overflow:hidden;}
   </div>
 </header>
 
-<div class="warnbar"><div><b>⚠ 使用警語：</b>分析結果僅供教學與參考，不構成經營建議；「AI 補齊」與 AI 推測的數值請以實際頁面為準；本工具不會自動爬取電商網站，只有你貼上連結並按「自動填入」時，才由你設定的 AI 服務讀取該頁面；資料只存在你的瀏覽器。<button class="linkbtn" type="button" data-open-about>完整警語</button></div></div>
+<div class="warnbar"><div><b>⚠ 使用警語：</b>分析結果僅供教學與參考，不構成經營建議；「AI 補齊」與 AI 推測的數值請以實際頁面為準；本工具不會自動爬取電商網站，只有你貼上連結並按「自動填入」時，才讀取那一個頁面（momo 由本工具的讀取服務、其他平台由你設定的 AI 服務）；資料只存在你的瀏覽器。<button class="linkbtn" type="button" data-open-about>完整警語</button></div></div>
 
 <main class="wrap">
 
@@ -486,7 +486,7 @@ body:has(#entryGate:not(.hidden)){overflow:hidden;}
       <label class="urlopt" for="urlMissing">讀不到的資料：<select id="urlMissing"><option value="blank">留空，我自己填</option><option value="guess">讓 AI 推測補上（標示 AI 推測）</option></select></label>
       <button class="btn ai small" type="button" id="aiFillBtn">🤖 只知道品牌名？AI 補齊競品資料</button>
     </div>
-    <p class="key-note" style="margin:6px 0 0">🔗 連結自動填入只會填空白欄位。沒填 AI 金鑰時只從網址辨識平台與商品名稱；填了金鑰會由你的 AI 服務讀取該商品頁。從頁面讀到的值標示「🔗 連結」，AI 推測的值標示「AI 推測」，請務必自行查核。</p>
+    <p class="key-note" style="margin:6px 0 0">🔗 連結自動填入只會填空白欄位。momo 連結免金鑰即可讀取名稱、類別、售價與特色；其他平台沒填 AI 金鑰時只從網址辨識平台與商品名稱，填了金鑰會由你的 AI 服務讀取該商品頁。從頁面讀到的值標示「🔗 連結」，AI 推測的值標示「AI 推測」，請務必自行查核。</p>
     <div class="actions" style="border-top:1px solid var(--border);padding-top:14px">
       <button class="btn primary" type="button" id="analyzeBtn">⚡ 開始分析（規則式，免金鑰）</button>
       <button class="btn ai" type="button" id="aiAnalyzeBtn">✨ AI 深化分析</button>
@@ -516,7 +516,7 @@ body:has(#entryGate:not(.hidden)){overflow:hidden;}
     <ul>
       <li>本工具產生的價格分析、優缺點、定位與銷售策略僅供教學、發想與討論參考，不構成任何經營、投資或法律建議，實際決策請自行查證。</li>
       <li>分析結果完全依你輸入的資料計算；「AI 補齊競品資料」的價格、評分、評論數與特色是 AI 推測值，可能與實際不符，<b>請以競品實際頁面為準</b>。</li>
-      <li>本工具不會自動爬取電商網站；只有你貼上商品連結並按「🔗 自動填入」時，才會由你設定的 AI 服務讀取那一個頁面（沒填金鑰則只解析網址文字）。讀到的價格、評分可能與當下頁面不同，也可能被網站擋下，請自行查核。貼入或讀到的評論摘錄請只做內部分析使用，不要公開轉貼他人評論或競品素材。</li>
+      <li>本工具不會自動爬取電商網站；只有你貼上商品連結並按「🔗 自動填入」時，才會讀取那一個頁面：momo 由本工具的讀取服務讀取公開商品資料，其他平台由你設定的 AI 服務讀取（沒填金鑰則只解析網址文字）。讀到的價格、評分可能與當下頁面不同，也可能被網站擋下，請自行查核。貼入或讀到的評論摘錄請只做內部分析使用，不要公開轉貼他人評論或競品素材。</li>
       <li>對競品的描述請保持客觀；在廣告或商品頁中直接點名比較競品，可能涉及公平交易法、商標法或平台規範，使用前請先確認。</li>
       <li>請勿輸入真實個資或公司機密。表單、設定與歷史紀錄只存在你自己瀏覽器的 localStorage，不會上傳到本工具的任何伺服器。</li>
       <li>填有 API 金鑰時，商品資料會直接從你的瀏覽器送到你選擇的 AI 服務商；金鑰只存在你的瀏覽器，API 費用依你與服務商的方案計算。</li>
@@ -1403,6 +1403,17 @@ function parseProductUrl(raw){
   return out;
 }
 
+// momo 商品頁：瀏覽器受 CORS 限制無法直接讀，改走自有 Cloudflare Worker（product-reader-worker/，只允許 momo 網址、只回傳欄位）
+var PRODUCT_READER_URL = 'https://ecommerce-product-reader.content-workflow.workers.dev/';
+async function readMomo(url){
+  var resp;
+  try{ resp = await fetch(PRODUCT_READER_URL + '?url=' + encodeURIComponent(url), {signal: AbortSignal.timeout(25000)}); }
+  catch(e){ throw new Error(e.name === 'TimeoutError' ? 'momo 讀取逾時，請稍後再試' : '連不上商品頁讀取服務'); }
+  var d = {}; try{ d = await resp.json(); }catch(e){}
+  if(!resp.ok || !d.ok) throw new Error(d.message || ('讀取服務回應 ' + resp.status));
+  return d;
+}
+
 async function postJsonWithRetry(url, headers, body, onRetry){
   var RETRYABLE = {429:1, 500:1, 503:1, 529:1}, MAX_TRIES = 3;
   for(var attempt = 1; attempt <= MAX_TRIES; attempt++){
@@ -1557,20 +1568,31 @@ async function urlFill(which){
   var lines = [];
   try{
     for(var n = 0; n < jobs.length; n++){
-      var j = jobs[n], info = parseProductUrl(j.raw), target = j.isMe ? null : comps[j.i], data = null, err = '';
-      if(hasKey){
-        setStatus('⏳ 讀取商品頁中（' + (n + 1) + '/' + jobs.length + '，' + esc(j.label) + '）…');
+      var j = jobs[n], info = parseProductUrl(j.raw), target = j.isMe ? null : comps[j.i], err = '', viaReader = false;
+      var r = {filled: [], notes: [], pageOk: false};
+      function merge(x){ x.filled.forEach(function(f){ if(r.filled.indexOf(f) < 0) r.filled.push(f); }); r.notes = r.notes.concat(x.notes); r.pageOk = r.pageOk || x.pageOk; }
+      // 1) momo：內建讀取服務，不需要金鑰
+      if(info.platform === 'momo'){
+        setStatus('⏳ 讀取 momo 商品頁中（' + (n + 1) + '/' + jobs.length + '，' + esc(j.label) + '）…');
+        try{ merge(applyUrlData(target, j.isMe, info, await readMomo(info.url))); viaReader = true; }catch(e){ err = 'momo：' + e.message; }
+      }
+      // 2) 其他平台（或 momo 讀不到、或使用者選「讓 AI 推測」）：有金鑰才交給 AI 讀頁，只補仍然空白的欄位
+      if(hasKey && (!viaReader || settings.urlMissing === 'guess')){
+        setStatus('⏳ ' + (viaReader ? 'AI 補齊其餘欄位' : '讀取商品頁') + '中（' + (n + 1) + '/' + jobs.length + '，' + esc(j.label) + '）…');
         try{
           var res = await callLLMWeb(settings.provider, model, settings.apiKey, buildUrlPrompt(info, j.isMe),
             function(a, st, w){ setStatus('⏳ 服務商忙碌（' + st + '），' + w + ' 秒後重試…'); });
-          data = extractJsonObject(res.text);
+          var data = extractJsonObject(res.text);
           if(res.fetchError && data.readable !== true) data.readable = false;
-        }catch(e){ err = e.message; }
+          merge(applyUrlData(target, j.isMe, info, data));
+          if(viaReader) err = '';
+        }catch(e){ err = (err ? err + '；' : '') + e.message; }
+      } else if(!viaReader){
+        merge(applyUrlData(target, j.isMe, info, null));
       }
-      var r = applyUrlData(target, j.isMe, info, data);
       var msg = '<b>' + esc(j.label) + '</b>：';
       if(err) msg += '<span class="bad">讀取失敗（' + esc(err) + '）</span>，';
-      else if(hasKey && !r.pageOk) msg += '網站擋下或頁面讀不到，';
+      else if((hasKey || viaReader) && !r.pageOk) msg += '網站擋下或頁面讀不到，';
       msg += r.filled.length ? '已填入 ' + esc(r.filled.join('、')) : '沒有可填入的新資料';
       if(r.notes.length) msg += '；' + esc(r.notes.join('；'));
       lines.push(msg);
@@ -1578,7 +1600,7 @@ async function urlFill(which){
     renderComps(); saveDraft(); updateCurHint();
     var tail = hasKey
       ? (settings.urlMissing === 'guess' ? '讀不到的欄位已由 AI 推測並標示「AI 推測」，請自行查核。' : '讀不到的欄位維持空白，可自行補上。')
-      : '目前只從網址辨識平台與商品名稱；要自動讀取售價、評分、特色等，請在 ⚙ 常用設定填入 AI 金鑰，其他欄位先留空。';
+      : 'momo 連結由內建讀取服務直接填入（評分、評論數 momo 頁面讀不到，維持空白）；其他平台目前只從網址辨識平台與商品名稱，要讀取售價、評分、特色請在 ⚙ 常用設定填入 AI 金鑰，其他欄位先留空。';
     setStatus('🔗 ' + lines.join('<br>') + '<br><span class="muted">' + tail + '</span>');
   }finally{ busy = false; toggleAiBtns(false); }
 }
