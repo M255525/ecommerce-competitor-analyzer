@@ -1,6 +1,6 @@
 # AI 電商競品分析系統（ecommerce-competitor-analyzer）
 
-輸入「我的商品」＋ 1～8 個競品（品牌名、售價、評分、評論數、特色、評論摘錄）→ 六個分頁：總覽、價格分析、商品特色矩陣、競品優缺點、產品定位圖、銷售策略（含 30 天行動計畫）→ PDF／Markdown／JSON。純前端靜態網站，本機 port **8843**（`python -m http.server 8843`，已登記在工作區 `.claude/launch.json`）。2026-11-01 起有登入序號閘門（整個工具鎖住）。
+輸入「我的商品」＋ 1～8 個競品（品牌名、售價、評分、評論數、特色、評論摘錄；可貼商品連結自動填入）→ 六個分頁：總覽、價格分析、商品特色矩陣、競品優缺點、產品定位圖、銷售策略（含 30 天行動計畫）→ PDF／Markdown／JSON。純前端靜態網站，本機 port **8843**（`python -m http.server 8843`，已登記在工作區 `.claude/launch.json`）。2026-11-01 起有登入序號閘門（整個工具鎖住）。
 
 ## 檔案
 - `index.html`：全部 UI 與邏輯（單一 IIFE：規則引擎、AI、設定、歷史、PDF、跑馬燈、PWA、關於／警語彈窗）。
@@ -26,6 +26,14 @@
 `callLLM`／`extractJsonObject`／模型清單沿用 business-model-pattern-studio。兩種呼叫：
 - `aiFill()`：只有品牌名時推測價格／評分／評論數／特色／評論，只填空欄，逐欄標 `comp.ai[k]`（UI 顯示「AI 推測」，使用者手改後自動移除）。
 - `aiAnalyze(sections)`：sections ⊂ `summary/proscons/position/strategy`；`validatePatch()` 逐欄驗證，不合格沿用規則式並在狀態列列出；結果存成 `state.aiPatch`，重新分析時以 `applyAiPatch()` 疊回（歷史紀錄也存 patch 而非整份結果）。
+
+## 商品連結自動填入（2026-11-01）
+我的商品 `#mUrl`＋每個競品 `comp.url`（`data-k="url"`）各有「🔗 自動填入」（`data-urlfill="me"|索引`），另有「🔗 依連結自動填入全部」`#urlFillAllBtn`。程式在 index.html「商品連結自動填入」段：
+- `parseProductUrl()`：免金鑰，只從網址辨識平台（shopee／momo／pchome／amazon）、幣別（`URL_CUR` 依網域）、商品名稱（蝦皮 `名稱-i.店.品`、Amazon `/名稱/dp/ASIN`）。
+- `callLLMWeb()`：有金鑰時交給使用者的 AI 讀頁：Claude `web_fetch`（Opus/Sonnet 4.6+ 用 `web_fetch_20260209`，其他用 `web_fetch_20250910`，無 beta header，處理 `pause_turn` 續送、`web_fetch_tool_result` 錯誤物件）、Gemini `tools:[{url_context:{}}]`（看 `urlContextMetadata` 狀態）、OpenAI **Responses API** `tools:[{type:'web_search'}]`、OpenRouter `plugins:[{id:'web'}]`。**本工具自己不連線電商網站**（GitHub Pages 也做不到，CORS）。
+- `applyUrlData()`：**只填空白欄位**；`readable:false` 時一律不採用頁面值；頁面幣別≠表單幣別時售價留空（不換匯）。讀不到的欄位依 `settings.urlMissing`（`#urlMissing`）：`blank` 留空（預設）／`guess` AI 推測並列入 `guessed`。
+- 來源標記沿用 `comp.ai[k]`：`'url'`＝從頁面讀到（顯示 🔗 連結，結果表 `aiTag()` 不標 AI）；`1`＝AI 推測。
+- 蝦皮等網站常擋機器讀取，實際能讀到多少依服務商而定；尚未用真實金鑰測過（只用攔截 fetch 的模擬回應測過四種情境）。
 
 ## 幣別
 `CURRENCIES`（index.html）13 種，`dec` 決定小數位；表單 `#mCurrency` 存在 `input.me.currency`（舊紀錄沒有此欄位＝TWD），設定 `settings.currency` 只是新表單預設。`money()` 依 `activeCur` 加幣別符號；`roundPrice()` 有小數幣別取到 0.5／整數。**切換幣別只換顯示，不做匯率換算。**
