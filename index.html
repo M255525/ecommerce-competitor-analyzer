@@ -307,9 +307,45 @@ footer{max-width:1180px;margin:0 auto;padding:0 16px 40px;text-align:center;}
   #printReport svg{max-width:100%;height:auto;}
   #printReport .foot{margin-top:18px;font-size:8.5pt;color:#777;border-top:1px solid #ccc;padding-top:6px;}
 }
+
+/* 登入序號閘門（比照 AI 技能提示詞工坊）：預設擋住整個工具，驗證通過才隱藏 */
+#entryGate{position:fixed;inset:0;background:linear-gradient(120deg,#13293d 0%,#1d3f5e 60%,#24476b 100%);z-index:3200;display:flex;align-items:center;justify-content:center;padding:16px;}
+#entryGate.hidden{display:none;}
+body:has(#entryGate:not(.hidden)){overflow:hidden;}
+.gate-box{background:var(--panel);border:1px solid var(--border);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.3);padding:28px 24px;width:420px;max-width:100%;text-align:center;}
+.gate-logo{font-size:1.3rem;font-weight:800;color:var(--ink);margin-bottom:8px;}
+.gate-logo span{color:var(--coral);}
+.gate-desc{font-size:.88rem;color:var(--sub);margin:0 0 18px;line-height:1.7;}
+.gate-row{display:flex;gap:8px;margin-bottom:12px;}
+.gate-row input{flex:1;}
+.gate-row .btn{flex:none;padding:8px 12px;}
+.gate-foot{font-size:.8rem;color:var(--sub);margin:14px 0 0;}
+.lic{display:inline-block;font-size:.8rem;font-weight:700;padding:4px 10px;border-radius:999px;border:1px solid var(--border);color:var(--sub);background:var(--panel2);}
+.lic.ok{color:var(--green);border-color:var(--green);background:#e8f6f0;}
+.lic.bad{color:var(--red);border-color:var(--red);background:#fbe9ec;}
+#headcountChip{align-self:center;cursor:default;}
+#entryGateHeadcount{display:block;margin-top:10px;font-size:.8rem;color:var(--sub);}
+#entryGateHeadcount:empty{display:none;}
+.lic-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:4px 14px 14px;}
+@media (max-width:560px){ .gate-row input{font-size:16px;} }
 </style>
 </head>
 <body>
+<!-- 登入序號閘門：沒有有效序號就看不到工具；序號存在試算表「跨境電商工具」的「AI 電商競品分析系統」分頁（gas/Code.js） -->
+<div id="entryGate" role="dialog" aria-modal="true" aria-labelledby="gateTitle">
+  <div class="gate-box">
+    <div class="gate-logo" id="gateTitle">🔐 AI 電商<span>競品分析系統</span></div>
+    <p class="gate-desc">本工具需輸入登入序號並按「確認」驗證通過後才能使用。序號自第一次驗證起提供 12 個月使用期限。</p>
+    <div class="gate-row">
+      <input type="password" id="entryGateSerial" placeholder="請輸入登入序號" autocomplete="off" aria-label="登入序號">
+      <button type="button" class="btn ghost" id="btnEntryGateToggle" title="顯示／隱藏序號" aria-label="顯示／隱藏序號">👁</button>
+    </div>
+    <button type="button" class="btn primary" id="btnEntryGateConfirm" style="width:100%;margin-bottom:12px">確認</button>
+    <span id="entryGateStatus" class="lic" role="status">尚未驗證</span>
+    <span id="entryGateHeadcount" aria-live="polite"></span>
+    <p class="gate-foot">沒有序號？請洽 <a href="mailto:tsaimark@gmail.com">tsaimark@gmail.com</a>｜<a href="manual.html" target="_blank" rel="noopener">📖 操作手冊</a></p>
+  </div>
+</div>
 <div id="marqueeBar"><div id="marqueeTrack"></div></div>
 
 <header>
@@ -325,6 +361,7 @@ footer{max-width:1180px;margin:0 auto;padding:0 16px 40px;text-align:center;}
       <button class="hbtn" id="historyBtn" type="button">🗂 歷史紀錄</button>
       <button class="hbtn" id="settingsBtn" type="button" aria-expanded="false" aria-controls="settings">⚙ 常用設定</button>
       <button class="hbtn" type="button" data-install>📲 加入主畫面</button>
+      <span id="headcountChip" class="lic" style="display:none" role="status"></span>
     </div>
   </div>
 </header>
@@ -384,6 +421,11 @@ footer{max-width:1180px;margin:0 auto;padding:0 16px 40px;text-align:center;}
         <button class="btn ghost small" type="button" id="resetSetBtn">↺ 恢復預設設定（保留 AI 金鑰）</button>
         <button class="btn ghost small" type="button" id="clearLocalBtn">🗑 清除本機資料（設定、歷史、草稿）</button>
       </div>
+    </details>
+
+    <details class="set-sec" data-sec="login">
+      <summary><span class="sst">🔐 登入序號</span><span class="ssv">剩餘天數、可登入人數、登出</span></summary>
+      <div class="lic-row"><span id="licBadge" class="lic">尚未驗證</span><span id="headcountBadge" class="lic" style="display:none"></span><span style="flex:1"></span><button class="btn ghost small" type="button" id="btnLogout">登出／更換序號</button></div>
     </details>
 
     <details class="set-sec" data-sec="about">
@@ -1678,6 +1720,186 @@ window.__eca = {
   loadSample: function(key){ var s = E.SAMPLES.filter(function(x){ return x.key === key; })[0]; writeInput({me: s.me, comps: s.comps}); return runAnalysis({silent:true, noSave:true}); }
 };
 init();
+})();
+</script>
+<script>
+/* ================= 登入序號閘門 — 比照 AI 技能提示詞工坊：
+   序號存在 Google 試算表「跨境電商工具」的「AI 電商競品分析系統」分頁，由綁定的 Apps Script（gas/Code.js）驗證；
+   支援「人數限制」（同時在線上限）、每 20 分鐘背景重驗、關閉分頁時 sendBeacon 釋出名額 ================= */
+(function () {
+  'use strict';
+  var LICENSE_CHECK_URL = 'https://script.google.com/macros/s/AKfycbxyRpoNLkgJ1kkiEiixb_iHe4b6yCJ3vOd4HIZbAJUZwezRdjpDV-ksTLCAtRPM02VL/exec';
+  var STORAGE_KEY = 'ecaEntrySerial';
+  var CLIENT_ID_KEY = 'ecaEntryClientId';
+  var RECHECK_MS = 20 * 60 * 1000;
+
+  var gate = document.getElementById('entryGate');
+  var input = document.getElementById('entryGateSerial');
+  var toggleBtn = document.getElementById('btnEntryGateToggle');
+  var confirmBtn = document.getElementById('btnEntryGateConfirm');
+  var statusEl = document.getElementById('entryGateStatus');
+  var licBadge = document.getElementById('licBadge');
+  var headcountBadge = document.getElementById('headcountBadge');
+  var headcountChip = document.getElementById('headcountChip');
+  var gateHeadcount = document.getElementById('entryGateHeadcount');
+  var logoutBtn = document.getElementById('btnLogout');
+  if (!gate || !input || !confirmBtn || !statusEl) return;
+
+  function loadSerial() { try { return localStorage.getItem(STORAGE_KEY) || ''; } catch (e) { return ''; } }
+  function saveSerial(s) { try { localStorage.setItem(STORAGE_KEY, s); } catch (e) {} }
+  function clearSerial() { try { localStorage.removeItem(STORAGE_KEY); } catch (e) {} }
+
+  // 每個瀏覽器一組隨機 ID，後端靠它判斷是不是同一個人重複登入／背景重驗，不會重複佔名額
+  function getClientId() {
+    try {
+      var id = localStorage.getItem(CLIENT_ID_KEY);
+      if (!id) {
+        id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ('c-' + Date.now() + '-' + Math.random().toString(36).slice(2));
+        localStorage.setItem(CLIENT_ID_KEY, id);
+      }
+      return id;
+    } catch (e) {
+      return 'c-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+    }
+  }
+
+  var REASON_LABEL = {
+    missing_serial: '請輸入登入序號',
+    serial_not_found: '查無此登入序號，請確認輸入是否正確',
+    expired: '此序號已逾使用期限',
+    network_error: '無法連線授權伺服器，請檢查網路連線',
+    server_error: '授權伺服器發生錯誤，請稍後再試'
+  };
+
+  function setStatus(cls, text) {
+    statusEl.className = 'lic ' + cls; statusEl.textContent = text;
+    if (licBadge) { licBadge.className = 'lic ' + cls; licBadge.textContent = text; }
+  }
+  // 顯示「這組序號目前還可以登入的人數」：頂部工具列小標籤、⚙ 常用設定、登入畫面（含已達上限時）三處同步；
+  // 試算表該列沒填「人數限制」就顯示不限人數；沒有驗證結果（登出、連線失敗）則全部隱藏
+  function updateHeadcountBadge(license) {
+    var limited = license && typeof license.headcountLimit === 'number';
+    var unlimited = license && license.valid && !limited;
+    var remaining = limited ? Math.max(license.headcountRemaining || 0, 0) : 0;
+    var used = limited ? (license.headcountUsed || 0) : 0;
+    var cls = 'lic ' + (unlimited || remaining > 0 ? 'ok' : 'bad');
+    var full = !license ? '' : unlimited ? '👥 此序號不限登入人數'
+      : limited ? '👥 此序號還可登入 ' + remaining + ' 人（同時登入上限 ' + license.headcountLimit + ' 人，目前 ' + used + ' 人已登入）' : '';
+    if (headcountBadge) {
+      headcountBadge.style.display = full ? '' : 'none';
+      headcountBadge.className = cls; headcountBadge.textContent = full;
+    }
+    if (headcountChip) {
+      headcountChip.style.display = full ? '' : 'none';
+      headcountChip.className = cls;
+      headcountChip.textContent = unlimited ? '👥 不限人數' : limited ? '👥 還可登入 ' + remaining + '/' + license.headcountLimit : '';
+      headcountChip.title = full.replace('👥 ', '') + (limited ? '；每 20 分鐘或開啟 ⚙ 常用設定時更新，上限只在登入當下把關，已登入者不會被踢出；關閉分頁或 40 分鐘沒動靜即釋出名額' : '');
+    }
+    if (gateHeadcount) gateHeadcount.textContent = full;
+  }
+
+  // GAS Web App 不回應 OPTIONS 預檢，所以不設 Content-Type（維持簡單請求）
+  // renew＝已登入者的背景重驗：人數限制只在登入當下把關，重驗不會因名額已滿被踢出
+  function checkLicense(serial, attempt, renew) {
+    attempt = attempt || 1;
+    return fetch(LICENSE_CHECK_URL, {
+      method: 'POST',
+      body: JSON.stringify({ serial: serial, clientId: getClientId(), renew: !!renew }),
+      signal: AbortSignal.timeout(20000)
+    }).catch(function (err) {
+      throw new Error(err.name === 'TimeoutError' ? '授權伺服器回應時間較長，請稍候片刻後再試一次' : REASON_LABEL.network_error);
+    }).then(function (resp) {
+      if (!resp.ok) throw new Error('授權伺服器回應異常（' + resp.status + '）');
+      return resp.text();
+    }).then(function (text) {
+      var parsed;
+      try { parsed = JSON.parse(text); } catch (e) { parsed = null; }
+      if (!parsed || typeof parsed.valid !== 'boolean') {
+        if (attempt < 3) return checkLicense(serial, attempt + 1, renew);
+        throw new Error('授權伺服器回應異常，請稍後再試一次');
+      }
+      return parsed;
+    });
+  }
+
+  function fmtDays(license) {
+    if (!license.expiresAt) return '';
+    var days = Math.ceil((new Date(license.expiresAt) - new Date()) / 86400000);
+    return '剩餘 ' + Math.max(days, 0) + ' 天可用（至 ' + new Date(license.expiresAt).toLocaleDateString() + '）';
+  }
+  function unlock(license) {
+    setStatus('ok', '✓ ' + (fmtDays(license) || '序號有效'));
+    gate.classList.add('hidden');
+    updateHeadcountBadge(license);
+  }
+  function lock(reasonText, license) {
+    setStatus('bad', '✗ ' + reasonText);
+    gate.classList.remove('hidden');
+    // 只有「已達人數上限」才在登入畫面留著人數資訊，讓使用者知道是名額滿了
+    updateHeadcountBadge(license && license.reason === 'headcount_exceeded' ? license : null);
+  }
+
+  function runCheck(serial, opts) {
+    opts = opts || {};
+    if (!serial) { setStatus('bad', REASON_LABEL.missing_serial); return Promise.resolve({ valid: false }); }
+    if (!opts.silent) setStatus('', '驗證中…');
+    return checkLicense(serial, 1, opts.renew).then(function (license) {
+      if (license.valid) unlock(license);
+      else lock(REASON_LABEL[license.reason] || license.message || '授權序號驗證失敗', license);
+      return license;
+    }).catch(function (err) {
+      lock(err.message);
+      return { valid: false, reason: 'network_error', message: err.message };
+    });
+  }
+
+  function release(serial) {
+    if (!serial || !navigator.sendBeacon) return;
+    try {
+      var blob = new Blob([JSON.stringify({ serial: serial, clientId: getClientId(), release: true })], { type: 'text/plain' });
+      navigator.sendBeacon(LICENSE_CHECK_URL, blob);
+    } catch (e) {}
+  }
+
+  confirmBtn.addEventListener('click', function () {
+    var serial = input.value.trim();
+    saveSerial(serial);
+    runCheck(serial);
+  });
+  input.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); confirmBtn.click(); }
+  });
+  if (toggleBtn) toggleBtn.addEventListener('click', function () { input.type = input.type === 'password' ? 'text' : 'password'; });
+  if (logoutBtn) logoutBtn.addEventListener('click', function () {
+    release(loadSerial());
+    clearSerial();
+    input.value = '';
+    var m = document.getElementById('settings'); if (m) m.hidden = true;
+    var sb = document.getElementById('settingsBtn'); if (sb) sb.setAttribute('aria-expanded', 'false');
+    lock('已登出，請輸入登入序號');
+    input.focus();
+  });
+
+  window.__ecaGate = { runCheck: runCheck, unlock: unlock, lock: lock, updateHeadcountBadge: updateHeadcountBadge };
+
+  // 開啟 ⚙ 常用設定時順手重驗一次，讓「還可登入人數」是當下的數字（同一個瀏覽器重驗只續命、不多佔名額）
+  var settingsBtn = document.getElementById('settingsBtn');
+  if (settingsBtn) settingsBtn.addEventListener('click', function () {
+    var serial = loadSerial();
+    if (serial && gate.classList.contains('hidden')) runCheck(serial, { silent: true, renew: true });
+  });
+
+  input.value = loadSerial();
+  if (input.value) { setStatus('', '驗證中…'); runCheck(input.value, { silent: true }); }
+  else input.focus();
+
+  setInterval(function () {
+    var serial = loadSerial();
+    if (serial) runCheck(serial, { silent: true, renew: gate.classList.contains('hidden') });
+  }, RECHECK_MS);
+
+  // 關閉分頁時盡力釋出人數名額；送不出去也沒關係，後端有 40 分鐘逾時兜底
+  window.addEventListener('pagehide', function () { release(loadSerial()); });
 })();
 </script>
 </body>

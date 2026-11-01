@@ -1,11 +1,18 @@
 # AI 電商競品分析系統（ecommerce-competitor-analyzer）
 
-輸入「我的商品」＋ 1～8 個競品（品牌名、售價、評分、評論數、特色、評論摘錄）→ 六個分頁：總覽、價格分析、商品特色矩陣、競品優缺點、產品定位圖、銷售策略（含 30 天行動計畫）→ PDF／Markdown／JSON。純前端靜態網站，本機 port **8843**（`python -m http.server 8843`，已登記在工作區 `.claude/launch.json`）。無序號授權。
+輸入「我的商品」＋ 1～8 個競品（品牌名、售價、評分、評論數、特色、評論摘錄）→ 六個分頁：總覽、價格分析、商品特色矩陣、競品優缺點、產品定位圖、銷售策略（含 30 天行動計畫）→ PDF／Markdown／JSON。純前端靜態網站，本機 port **8843**（`python -m http.server 8843`，已登記在工作區 `.claude/launch.json`）。2026-11-01 起有登入序號閘門（整個工具鎖住）。
 
 ## 檔案
 - `index.html`：全部 UI 與邏輯（單一 IIFE：規則引擎、AI、設定、歷史、PDF、跑馬燈、PWA、關於／警語彈窗）。
 - `data.js`：`window.ECA` = 品類桶 `CATEGORIES`＋`classify()`、34 類特色詞庫 `FEATURES`（含構面 `DIMS`）、評論面向 `ASPECTS`、正負詞 `POS`/`NEG`、平台 `PLATFORMS`（預設費率＋操作建議）、四象限 `QUADRANTS`（定價／促銷／評論經營／風險模板）、文案模板 `COPY_TPL`、6 組虛構範例 `SAMPLES`。**調整詞庫或文案只改這個檔**。
 - `manual.html`（含完整版創作者區塊 `#creator`）、`manifest.json`、`service-worker.js`（network-first）、`icons/`（PIL 產生）、`watermark.png`（沿用 business-model-pattern-studio）。
+
+## 登入序號閘門（2026-11-01）
+比照 skill-prompt-studio：`#entryGate` 全螢幕擋住整個工具，驗證通過才加 `.hidden`；script 在 `</body>` 前獨立 IIFE（`window.__ecaGate`）。
+- 序號表：共用試算表「跨境電商工具」（`1sUrMVQ7T3_JOG_vMY1peGWxxxbw8PTxbbXBhj2IPM6s`）的分頁 **「AI 電商競品分析系統」**（同試算表的「文字雲」「PPC序號」分頁屬於其他工具、各有自己的綁定腳本）。表頭比對「序號／開始日期／結束日期」，12 個月；選填「人數限制」「目前登入人數」欄（同時登入上限，只在登入當下把關，`renew:true` 背景重驗不踢人；40 分鐘逾時；pagehide sendBeacon 釋出）。
+- 後端 `gas/Code.js`＋`gas/appsscript.json`（webapp ANYONE_ANONYMOUS）；`SHEET_NAME` 固定，分頁不存在回 server_error，**不退回第一個分頁**。clasp scriptId `1FiC3rmgdQLCt4m2aRUx7A9c4H_klNLlTc7lkFgTjNqJ6PUquqc8tvPAt`（`.clasp.json` 不進版控）；改後端：`cd gas && clasp push --force && clasp deploy -i AKfycbxyRpoNLkgJ1kkiEiixb_iHe4b6yCJ3vOd4HIZbAJUZwezRdjpDV-ksTLCAtRPM02VL`（更新既有部署，網址不變）。
+- 前端：`LICENSE_CHECK_URL` 即上述部署；localStorage `ecaEntrySerial`／`ecaEntryClientId`（刻意不用 `ecaStudio.` 前綴，「清除本機資料」不會把人登出）；頂部 `#headcountChip`、⚙ 常用設定「🔐 登入序號」區塊（`#licBadge`／`#headcountBadge`／`#btnLogout`）。每 20 分鐘背景重驗、開 ⚙ 時重驗。
+- ⚠ 純前端閘門，懂 DevTools 的人可移除遮罩；本工具邏輯全在前端，這是已知取捨。
 
 ## 規則式引擎（確定性，同輸入同輸出）
 - 特色：特色欄＋商品名比對 `FEATURES.kw`；比對不到的 token 列為「其他未歸類特色」（價值分數權重 0.5）。
