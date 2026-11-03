@@ -409,8 +409,7 @@ body:has(#entryGate:not(.hidden)){overflow:hidden;}
         <div class="set-row"><span>字級</span>
           <div class="seg" id="fsSeg"><button type="button" data-fs="">標準</button><button type="button" data-fs="l">大</button><button type="button" data-fs="xl">特大</button></div></div>
         <div class="set-row"><span>其他</span><div>
-          <label class="inline"><input type="checkbox" id="setAutoSave"> 分析後自動存入歷史紀錄</label>
-          <label class="inline"><input type="checkbox" id="setMarquee"> 顯示頂部跑馬燈公告</label></div></div>
+          <label class="inline"><input type="checkbox" id="setAutoSave"> 分析後自動存入歷史紀錄</label></div></div>
       </div>
     </details>
 
@@ -1720,7 +1719,7 @@ function updateSetSummaries(){
   $('sumAi').textContent = prov.label.replace(/（.*）/, '') + '／' + (settings.model || prov.defaultModel) + '｜' + (settings.apiKey ? '✅ 已填金鑰' : '未填金鑰（規則式）');
   var c = CURRENCIES[settings.currency] || CURRENCIES.TWD;
   $('sumDefaults').textContent = E.PLATFORMS[settings.platform].label + '（費率 ' + settings.fees[settings.platform] + '%）｜' + c.label;
-  $('sumDisplay').textContent = '字級 ' + ({'':'標準', l:'大', xl:'特大'}[settings.fs || ''] || '標準') + '｜自動存歷史 ' + (settings.autoSave ? '開' : '關') + '｜跑馬燈 ' + (settings.marquee ? '開' : '關');
+  $('sumDisplay').textContent = '字級 ' + ({'':'標準', l:'大', xl:'特大'}[settings.fs || ''] || '標準') + '｜自動存歷史 ' + (settings.autoSave ? '開' : '關');
   $('sumPdf').textContent = (settings.author ? '署名：' + settings.author : '未署名') + '｜浮水印 ' + (settings.watermark ? '開' : '關');
 }
 function applySettings(){
@@ -1735,7 +1734,7 @@ function fillSettingsUI(){
   $('setPlatform').value = settings.platform;
   $('feeGrid').innerHTML = Object.keys(E.PLATFORMS).map(function(k){ return '<label>' + esc(E.PLATFORMS[k].label) + '<input type="number" min="0" max="60" step="0.5" data-fee="' + k + '" value="' + esc(settings.fees[k]) + '"></label>'; }).join('');
   $('setCurrency').value = settings.currency;
-  $('setAutoSave').checked = !!settings.autoSave; $('setMarquee').checked = !!settings.marquee;
+  $('setAutoSave').checked = !!settings.autoSave;
   $('setAuthor').value = settings.author || ''; $('setWatermark').checked = !!settings.watermark;
   applySettings();
 }
@@ -1768,7 +1767,7 @@ function initMarquee(){
     if(lastIndex < text.length) container.appendChild(document.createTextNode(text.slice(lastIndex)));
   }
   function render(items){
-    if(!settings.marquee || !items || !items.length) return;
+    if(false /* 跑馬燈為必備，不可關閉 */ || !items || !items.length) return;
     var key = JSON.stringify(items);
     if(key === lastKey) return;
     lastKey = key; track.innerHTML = '';
@@ -1780,14 +1779,14 @@ function initMarquee(){
     track.style.animationDuration = Math.max(track.scrollWidth / 2 / 80, 10) + 's';
   }
   function fetchMarquee(){
-    if(!settings.marquee) return;
+    if(false /* 跑馬燈為必備，不可關閉 */) return;
     fetch(MARQUEE_CHECK_URL, {method:'POST', body:JSON.stringify({serial:''})})
       .then(function(r){ return r.json(); })
       .then(function(data){ if(data && Array.isArray(data.marquee) && data.marquee.length){ saveCache(data.marquee); render(data.marquee); } })
       .catch(function(){});
   }
   window.__applyMarquee = function(){
-    if(!settings.marquee){ bar.classList.remove('show'); document.body.classList.remove('has-marquee'); lastKey = null; }
+    if(false /* 跑馬燈為必備，不可關閉 */){ bar.classList.remove('show'); document.body.classList.remove('has-marquee'); lastKey = null; }
     else { render(loadCache()); fetchMarquee(); }
   };
   render(loadCache()); fetchMarquee(); setInterval(fetchMarquee, REFRESH_MS);
@@ -1934,7 +1933,6 @@ function init(){
   });
   $('mPlatform').addEventListener('change', updateCurHint);
   $('setAutoSave').addEventListener('change', function(){ settings.autoSave = this.checked; saveSettings(); });
-  $('setMarquee').addEventListener('change', function(){ settings.marquee = this.checked; saveSettings(); if(window.__applyMarquee) window.__applyMarquee(); });
   $('setAuthor').addEventListener('input', function(){ settings.author = this.value.trim(); saveSettings(); });
   $('setWatermark').addEventListener('change', function(){ settings.watermark = this.checked; saveSettings(); });
   $('resetSetBtn').addEventListener('click', function(){
