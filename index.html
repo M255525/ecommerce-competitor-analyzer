@@ -557,6 +557,9 @@ body:has(#entryGate:not(.hidden)){overflow:hidden;}
 
 <script src="data.js"></script>
 <script>
+/* Gemini 已下架／不存在的模型 ID 自動換成現役模型（2026-11 體檢）：新申請的 AI Studio 金鑰呼叫 2.5／2.0 系列會被拒；也順便去掉多打的空白與 models/ 前綴 */
+function geminiModelFix(m){var r={'gemini-2.5-flash': 'gemini-3.6-flash', 'gemini-2.5-flash-lite': 'gemini-3.5-flash-lite', 'gemini-2.5-pro': 'gemini-3.8-flash', 'gemini-2.0-flash': 'gemini-3.6-flash', 'gemini-2.0-flash-001': 'gemini-3.6-flash', 'gemini-2.0-flash-lite': 'gemini-3.1-flash-lite', 'gemini-1.5-flash': 'gemini-3.6-flash', 'gemini-1.5-pro': 'gemini-3.1-pro-preview', 'gemini-3-pro': 'gemini-3.1-pro-preview', 'gemini-3-pro-preview': 'gemini-3.1-pro-preview', 'gemini-3.5-pro': 'gemini-3.1-pro-preview', 'gemini-3.1-flash-lite-preview': 'gemini-3.1-flash-lite'};m=String(m||'').trim().replace(/^models\//,'');return r[m]||m;}
+
 (function(){
 'use strict';
 var E = window.ECA;
@@ -629,9 +632,9 @@ var MODEL_OPTIONS = {
     {value:'gpt-4o-mini', label:'GPT-4o mini（快速省錢）'}
   ],
   gemini: [
-    {value:'gemini-3.5-pro', label:'Gemini 3.5 Pro（最強）'},
+    {value:'gemini-3.1-pro-preview', label:'Gemini 3.1 Pro 預覽版（最強）'},
     {value:'gemini-3.5-flash', label:'Gemini 3.5 Flash（均衡，推薦）'},
-    {value:'gemini-2.5-flash', label:'Gemini 2.5 Flash（快速省錢）'}
+    {value:'gemini-3.5-flash-lite', label:'Gemini 3.5 Flash-Lite（快速省錢）'}
   ],
   openrouter: [
     {value:'openai/gpt-4o-mini', label:'OpenAI GPT-4o mini（推薦）'},
@@ -682,7 +685,7 @@ async function callLLM(provider, model, apiKey, prompt, onRetry){
     body = {model: model, messages: [{role:'user', content: prompt}]};
     extract = oaExtract;
   } else if(provider === 'gemini'){
-    url = 'https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) + ':generateContent';
+    url = 'https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(geminiModelFix(model)) + ':generateContent';
     headers = {'content-type':'application/json','x-goog-api-key':apiKey};
     body = {contents: [{parts: [{text: prompt}]}]};
     extract = function(d){
@@ -1458,7 +1461,7 @@ async function callLLMWeb(provider, model, apiKey, prompt, onRetry){
     return {text: text, fetchError: fetchError};
   }
   if(provider === 'gemini'){
-    var g = await postJsonWithRetry('https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) + ':generateContent',
+    var g = await postJsonWithRetry('https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(geminiModelFix(model)) + ':generateContent',
       {'content-type':'application/json','x-goog-api-key':apiKey}, {contents: [{parts: [{text: prompt}]}], tools: [{url_context: {}}]}, onRetry);
     var cand = (g.candidates && g.candidates[0]) || {};
     var meta = (cand.urlContextMetadata || cand.url_context_metadata || {});
