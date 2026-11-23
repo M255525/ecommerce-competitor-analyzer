@@ -125,6 +125,11 @@ label.inline{display:inline-flex;gap:6px;align-items:center;margin-right:16px;fo
 .hist-item .d{color:var(--sub);font-size:.8rem;white-space:nowrap;}
 
 #result{display:none;}
+.id-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px 14px;margin-top:10px;}
+.id-grid input{width:100%;min-width:0;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:#fff;}
+.id-note{margin:6px 0 0;color:var(--sub);font-size:.86rem;}
+@media (max-width:900px){.id-grid{grid-template-columns:repeat(2,1fr);}}
+@media (max-width:560px){.id-grid{grid-template-columns:1fr;}.id-grid input{font-size:16px;}}
 #result.show{display:block;}
 .tabs{display:flex;gap:4px;flex-wrap:wrap;border-bottom:2px solid var(--border);margin-bottom:16px;position:sticky;top:0;z-index:20;background:var(--panel);}
 body.has-marquee .tabs{top:30px;}
@@ -507,6 +512,18 @@ body:has(#entryGate:not(.hidden)){overflow:hidden;}
     <div class="tabs" id="tabs" style="margin-top:14px"></div>
     <div id="panes"></div>
   </section>
+
+  <section class="panel" id="practiceCert">
+    <h2>🎓 身分資料（選填，練習證明用）</h2>
+    <p class="id-note">填寫後，完成分析再按「🎓 下載練習證明」，會產生一張含身分資料與分析摘要的 PNG 圖片，可繳交存證。資料只存在你自己的瀏覽器，不會上傳；非課程練習用途可不填。</p>
+    <div class="id-grid">
+      <div class="field"><label for="idName">姓名</label><input type="text" id="idName" maxlength="40" placeholder="例如：王小明"></div>
+      <div class="field"><label for="idStudentId">學號</label><input type="text" id="idStudentId" maxlength="30" placeholder="選填"></div>
+      <div class="field"><label for="idDept">系所</label><input type="text" id="idDept" maxlength="40" placeholder="選填"></div>
+      <div class="field"><label for="idGroup">組別</label><input type="text" id="idGroup" maxlength="30" placeholder="選填"></div>
+    </div>
+    <div class="actions"><button class="btn primary" type="button" id="certExportBtn">🎓 下載練習證明</button></div>
+  </section>
 </main>
 
 <footer>
@@ -517,7 +534,7 @@ body:has(#entryGate:not(.hidden)){overflow:hidden;}
       <li>分析結果完全依你輸入的資料計算；「AI 補齊競品資料」的價格、評分、評論數與特色是 AI 推測值，可能與實際不符，<b>請以競品實際頁面為準</b>。</li>
       <li>本工具不會自動爬取電商網站；只有你貼上商品連結並按「🔗 自動填入」時，才會讀取那一個頁面：momo 由本工具的讀取服務讀取公開商品資料，其他平台由你設定的 AI 服務讀取（沒填金鑰則只解析網址文字）。讀到的價格、評分可能與當下頁面不同，也可能被網站擋下，請自行查核。貼入或讀到的評論摘錄請只做內部分析使用，不要公開轉貼他人評論或競品素材。</li>
       <li>對競品的描述請保持客觀；在廣告或商品頁中直接點名比較競品，可能涉及公平交易法、商標法或平台規範，使用前請先確認。</li>
-      <li>請勿輸入真實個資或公司機密。表單、設定與歷史紀錄只存在你自己瀏覽器的 localStorage，不會上傳到本工具的任何伺服器。</li>
+      <li>請勿輸入真實個資或公司機密。「姓名／學號／系所／組別」為選填，只用於你自行下載的練習證明圖檔。表單、身分資料、設定與歷史紀錄只存在你自己瀏覽器的 localStorage，不會上傳到本工具的任何伺服器。</li>
       <li>填有 API 金鑰時，商品資料會直接從你的瀏覽器送到你選擇的 AI 服務商；金鑰只存在你的瀏覽器，API 費用依你與服務商的方案計算。</li>
       <li>僅供教學、課程及個人使用，禁止未經授權公開發布、販售或商業化使用。</li>
     </ul>
@@ -1946,14 +1963,14 @@ function init(){
   $('clearLocalBtn').addEventListener('click', function(){
     try{ Object.keys(localStorage).filter(function(k){ return k.indexOf(PREFIX) === 0; }).forEach(lsDel); }catch(e){}
     settings = JSON.parse(JSON.stringify(DEFAULTS)); settings.fees = defaultFees();
-    fillSettingsUI(); restoreFold(); updateSetSummaries(); writeInput(null); renderHistory(); toast('已清除本機資料');
+    fillSettingsUI(); restoreFold(); updateSetSummaries(); writeInput(null); renderHistory(); ID_FIELDS.forEach(function(f){ $(f[0]).value = ''; }); toast('已清除本機資料');
   });
   $('aboutClose').addEventListener('click', closeAbout);
   $('aboutOk').addEventListener('click', closeAbout);
   $('about').addEventListener('click', function(e){ if(e.target === this) closeAbout(); });
   document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && $('about').classList.contains('show')) closeAbout(); });
 
-  initMarquee(); initPwa();
+  initMarquee(); initPwa(); initIdentity();
   if(!lsGet(WARN_KEY)) setTimeout(function(){ openAbout(); }, 400);
 }
 function copyText(t){
@@ -1964,6 +1981,90 @@ function fallbackCopy(t){
   var ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select();
   try{ document.execCommand('copy'); toast('已複製'); }catch(e){ toast('複製失敗，請手動選取'); }
   ta.remove();
+}
+
+/* ================= 身分資料與練習證明（PNG，Canvas 繪製；比照 Amazon 成本分析計算機） ================= */
+var IDENTITY_KEY = PREFIX + 'identity';
+var ID_FIELDS = [['idName','name'],['idStudentId','studentId'],['idDept','dept'],['idGroup','group']];
+function saveIdentity(){
+  var d = {}; ID_FIELDS.forEach(function(f){ d[f[1]] = $(f[0]).value; });
+  lsSet(IDENTITY_KEY, JSON.stringify(d));
+}
+function restoreIdentity(){
+  var d = {};
+  try{ d = JSON.parse(lsGet(IDENTITY_KEY) || 'null') || null; }catch(e){ d = null; }
+  if(!d){ // 第一次使用：同網域的「動物朋友的跨境電商大冒險」報到時填過就先帶入
+    try{ d = JSON.parse(lsGet('animalAdventureIdentity') || '{}') || {}; }catch(e){ d = {}; }
+  }
+  ID_FIELDS.forEach(function(f){ $(f[0]).value = d[f[1]] || ''; });
+}
+function wrapCanvasText(ctx, text, maxWidth){
+  var lines = [], line = '';
+  for(var i = 0; i < text.length; i++){
+    var test = line + text[i];
+    if(ctx.measureText(test).width > maxWidth && line){ lines.push(line); line = text[i]; }
+    else line = test;
+  }
+  if(line) lines.push(line);
+  return lines;
+}
+function downloadPracticeCertificate(){
+  var res = state.result, inp = state.input;
+  if(!res || !inp){ toast('請先按「⚡ 開始分析」完成一次競品分析，再下載練習證明'); $('analyzeBtn').scrollIntoView({behavior:'smooth', block:'center'}); return; }
+  var v = {}; ID_FIELDS.forEach(function(f){ v[f[1]] = $(f[0]).value.trim(); });
+  var d = new Date();
+  var dateStr = d.getFullYear() + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + String(d.getDate()).padStart(2,'0');
+  var W = 1000, H = 700, F = '"Microsoft JhengHei","PingFang TC","Noto Sans TC",sans-serif';
+  var canvas = document.createElement('canvas'); canvas.width = W; canvas.height = H;
+  var ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = '#13293d'; ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = '#e4572e'; ctx.lineWidth = 3; ctx.strokeRect(24, 24, W-48, H-48);
+  ctx.strokeStyle = 'rgba(255,154,118,0.35)'; ctx.lineWidth = 1; ctx.strokeRect(34, 34, W-68, H-68);
+
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#ff9a76'; ctx.font = 'bold 20px ' + F; ctx.fillText('PRACTICE CERTIFICATE', W/2, 90);
+  ctx.fillStyle = '#ffffff'; ctx.font = 'bold 34px ' + F; ctx.fillText('練習證明', W/2, 138);
+  ctx.fillStyle = '#c9d6e3'; ctx.font = '18px ' + F; ctx.fillText('AI 電商競品分析系統', W/2, 170);
+  ctx.strokeStyle = 'rgba(255,154,118,0.4)'; ctx.beginPath(); ctx.moveTo(120, 196); ctx.lineTo(W-120, 196); ctx.stroke();
+
+  var y = 244;
+  ctx.font = '20px ' + F;
+  function row(label, value){
+    ctx.textAlign = 'right'; ctx.fillStyle = '#8fa3b8'; ctx.fillText(label, W/2 - 16, y);
+    ctx.textAlign = 'left'; ctx.fillStyle = '#ffffff'; ctx.fillText(value || '（未填寫）', W/2, y);
+    y += 40;
+  }
+  row('姓名：', v.name); row('學號：', v.studentId); row('系所：', v.dept); row('組別：', v.group);
+
+  y += 12;
+  ctx.textAlign = 'center'; ctx.font = '16px ' + F; ctx.fillStyle = '#c9d6e3';
+  var st = res.strategy || {}, pr = st.priceRange || [], mx = res.matrix || {};
+  var summary = '已完成競品分析：「' + (inp.me.name || '我的商品') + '」對比 ' + (inp.comps || []).length + ' 個競品，'
+    + '定位為「' + (st.quadLabel || '—') + '」'
+    + (pr.length === 2 ? '，建議售價區間 ' + money(pr[0]) + '～' + money(pr[1]) : '')
+    + '；獨有差異點 ' + ((mx.unique || []).length) + ' 項、待補缺口 ' + ((mx.gaps || []).length) + ' 項。';
+  wrapCanvasText(ctx, summary, W - 200).slice(0, 4).forEach(function(ln){ ctx.fillText(ln, W/2, y); y += 26; });
+  y += 8; ctx.fillStyle = '#8fa3b8';
+  ctx.fillText('產出日期：' + dateStr, W/2, y);
+
+  ctx.font = '12px ' + F; ctx.fillStyle = '#6f8499';
+  ctx.fillText('本證明由使用者自行下載，僅供課程練習存證使用，非官方發行文件；分析內容依使用者輸入資料計算，僅供教學參考', W/2, H-50);
+  ctx.fillText('AI 電商競品分析系統 · Mark Tsai', W/2, H-30);
+
+  canvas.toBlob(function(blob){
+    var url = URL.createObjectURL(blob), a = document.createElement('a');
+    var stamp = d.getFullYear() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0');
+    a.href = url; a.download = '練習證明_' + (v.name || '未填寫姓名') + '_' + stamp + '.png';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+    toast('已下載練習證明圖檔');
+  }, 'image/png');
+}
+function initIdentity(){
+  ID_FIELDS.forEach(function(f){ $(f[0]).addEventListener('input', saveIdentity); });
+  $('certExportBtn').addEventListener('click', downloadPracticeCertificate);
+  restoreIdentity();
 }
 
 window.__eca = {

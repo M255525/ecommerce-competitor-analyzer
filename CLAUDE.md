@@ -1,6 +1,6 @@
 # AI 電商競品分析系統（ecommerce-competitor-analyzer）
 
-輸入「我的商品」＋ 1～8 個競品（品牌名、售價、評分、評論數、特色、評論摘錄；可貼商品連結自動填入）→ 六個分頁：總覽、價格分析、商品特色矩陣、競品優缺點、產品定位圖、銷售策略（含 30 天行動計畫）→ PDF／Markdown／JSON。純前端靜態網站，本機 port **8843**（`python -m http.server 8843`，已登記在工作區 `.claude/launch.json`）。2026-11-01 起有登入序號閘門（整個工具鎖住）。
+輸入「我的商品」＋ 1～8 個競品（品牌名、售價、評分、評論數、特色、評論摘錄；可貼商品連結自動填入）→ 六個分頁：總覽、價格分析、商品特色矩陣、競品優缺點、產品定位圖、銷售策略（含 30 天行動計畫）→ PDF／Markdown／JSON；另可下載含身分資料的練習證明 PNG。純前端靜態網站，本機 port **8843**（`python -m http.server 8843`，已登記在工作區 `.claude/launch.json`）。2026-11-01 起有登入序號閘門（整個工具鎖住）。
 
 ## 檔案
 - `index.html`：全部 UI 與邏輯（單一 IIFE：規則引擎、AI、設定、歷史、PDF、跑馬燈、PWA、關於／警語彈窗）。
@@ -13,6 +13,9 @@
 - 後端 `gas/Code.js`＋`gas/appsscript.json`（webapp ANYONE_ANONYMOUS）；`SHEET_NAME` 固定，分頁不存在回 server_error，**不退回第一個分頁**。clasp scriptId `1FiC3rmgdQLCt4m2aRUx7A9c4H_klNLlTc7lkFgTjNqJ6PUquqc8tvPAt`（`.clasp.json` 不進版控）；改後端：`cd gas && clasp push --force && clasp deploy -i AKfycbxyRpoNLkgJ1kkiEiixb_iHe4b6yCJ3vOd4HIZbAJUZwezRdjpDV-ksTLCAtRPM02VL`（更新既有部署，網址不變）。
 - 前端：`LICENSE_CHECK_URL` 即上述部署；localStorage `ecaEntrySerial`／`ecaEntryClientId`（刻意不用 `ecaStudio.` 前綴，「清除本機資料」不會把人登出）；頂部 `#headcountChip`、⚙ 常用設定「🔐 登入序號」區塊（`#licBadge`／`#headcountBadge`／`#btnLogout`）。每 20 分鐘背景重驗、開 ⚙ 時重驗。
 - ⚠ 純前端閘門，懂 DevTools 的人可移除遮罩；本工具邏輯全在前端，這是已知取捨。
+
+## 身分資料與練習證明（2026-11-23）
+比照 `amazon-cost-calculator`：結果區下方 `#practiceCert` 面板（姓名 `idName`／學號 `idStudentId`／系所 `idDept`／組別 `idGroup`，皆選填），存 `ecaStudio.identity`（「清除本機資料」一併清掉）；第一次沒有自己的紀錄時，從同網域 `animalAdventureIdentity`（跨境電商大冒險報到資料，第五關即本工具）帶入。`downloadPracticeCertificate()` 純 Canvas 手繪 1000×700 PNG（深藍底＋珊瑚色外框、四列身分、一句分析摘要：商品名、競品數、`strategy.quadLabel`、`strategy.priceRange`、`matrix.unique/gaps` 數量），檔名 `練習證明_{姓名}_{YYYYMMDD}.png`；`state.result` 為空時只 toast 提醒先分析。**不用 window.print()／PDF**（使用者要求練習證明一律是圖檔）。
 
 ## 規則式引擎（確定性，同輸入同輸出）
 - 特色：特色欄＋商品名比對 `FEATURES.kw`；比對不到的 token 列為「其他未歸類特色」（價值分數權重 0.5）。
